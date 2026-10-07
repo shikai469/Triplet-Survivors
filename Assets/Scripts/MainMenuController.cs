@@ -5,7 +5,6 @@ public class MainMenuController : MonoBehaviour
 {
     public void PlayGame()
     {
-        // Chuyển sang màn hình chơi game (đảm bảo gõ đúng tên Scene của bạn)
         SceneManager.LoadScene("GameplayScene");
     }
 
@@ -16,7 +15,7 @@ public class MainMenuController : MonoBehaviour
 
     public void OpenSettings()
     {
-        Debug.Log("Sẽ mở bảng Settings sau...");
+        SceneManager.LoadScene("SettingsScene");
     }
 
     public void QuitGame()
