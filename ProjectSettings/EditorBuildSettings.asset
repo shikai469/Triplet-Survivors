@@ -9,14 +9,17 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 9e4538e288427fb42a89a1fe141d85e8
   - enabled: 1
+    path: Assets/Scenes/LevelSelectScene.unity
+    guid: a322c831ad9a26f4a80d8d1477e1de3d
+  - enabled: 1
     path: Assets/Scenes/UpgradeScene.unity
     guid: 9403deee934cb9d4fba704f8efe3993b
   - enabled: 1
-    path: Assets/Scenes/GameplayScene.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
-  - enabled: 1
     path: Assets/Scenes/SettingsScene.unity
     guid: c1f8eafb0bd8c1c448766bd9edd28d6b
+  - enabled: 1
+    path: Assets/Scenes/GameplayScene.unity
+    guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
