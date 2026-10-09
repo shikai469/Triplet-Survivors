@@ -255,7 +255,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   levelName: "B\xECnh Th\u01B0\u1EDDng"
   mapPreviewImage: {fileID: 0}
-  levelDetail: 
+  levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
   bossTime: 07:00
   clearCount: 0
   deathCount: 0
@@ -625,7 +625,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   levelName: "Kh\xF3"
   mapPreviewImage: {fileID: 0}
-  levelDetail: 
+  levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
   bossTime: 09:00
   clearCount: 0
   deathCount: 0
@@ -766,7 +766,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   levelName: "D\u1EC5"
   mapPreviewImage: {fileID: 0}
-  levelDetail: 
+  levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
   bossTime: 05:00
   clearCount: 0
   deathCount: 0
@@ -1339,7 +1339,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   levelName: "V\xF4 T\u1EADn"
   mapPreviewImage: {fileID: 0}
-  levelDetail: 
+  levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
   bossTime: --:--
   clearCount: 0
   deathCount: 0
