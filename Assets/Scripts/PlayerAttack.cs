@@ -25,6 +25,7 @@ public class PlayerAttack : MonoBehaviour
         float minDistanceSqr = attackRangeSqr;
         Vector3 playerPos = transform.position;
 
+        // 1. Quét tìm Quái vật gần nhất trong tầm bắn (Zero GC Alloc)
         int count = EnemyHealth.ActiveEnemies.Count;
         for (int i = 0; i < count; i++)
         {
@@ -39,7 +40,22 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
-        // Nếu tìm thấy mục tiêu trong tầm bắn, bắn đạn
+        // 2. Quét tìm thêm Rương Loot gần nhất trong tầm bắn
+        int chestCount = LootChest.ActiveChests.Count;
+        for (int i = 0; i < chestCount; i++)
+        {
+            LootChest chest = LootChest.ActiveChests[i];
+            if (chest == null) continue;
+
+            float distSqr = (chest.transform.position - playerPos).sqrMagnitude;
+            if (distSqr < minDistanceSqr)
+            {
+                minDistanceSqr = distSqr;
+                closestEnemy = chest.transform;
+            }
+        }
+
+        // 3. Nếu tìm thấy mục tiêu (quái hoặc rương) trong tầm bắn, tiến hành bắn đạn
         if (closestEnemy != null)
         {
             Shoot(closestEnemy);
@@ -54,7 +70,7 @@ public class PlayerAttack : MonoBehaviour
         GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
         if (bullet == null) return;
 
-        // Tính hướng bay từ người chơi tới quái vật
+        // Tính hướng bay từ người chơi tới mục tiêu
         Vector2 shootDirection = (target.position - transform.position).normalized;
 
         // Gắn vận tốc cho đạn nếu có Rigidbody2D

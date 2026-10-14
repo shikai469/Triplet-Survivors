@@ -44,6 +44,21 @@ public class BulletLogic : MonoBehaviour
             }
         }
 
+        // Tìm cả Rương Loot gần nhất
+        int chestCount = LootChest.ActiveChests.Count;
+        for (int i = 0; i < chestCount; i++)
+        {
+            LootChest chest = LootChest.ActiveChests[i];
+            if (chest == null) continue;
+
+            float distSqr = (chest.transform.position - currentPosition).sqrMagnitude;
+            if (distSqr < minDistanceSqr)
+            {
+                minDistanceSqr = distSqr;
+                nearestEnemy = chest.transform;
+            }
+        }
+
         if (nearestEnemy != null)
         {
             Vector2 targetDir = (nearestEnemy.position - currentPosition).normalized;

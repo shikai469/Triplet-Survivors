@@ -14,6 +14,7 @@ public class EnemySpawner : MonoBehaviour
     [Header("Loot Chest Settings")]
     public GameObject lootChestPrefab;
     public float chestSpawnInterval = 45f;
+    public float chestFirstSpawnDelay = 5f; // Rương đầu tiên sinh sau 5s để test thấy ngay (sau đó lặp lại mỗi 45s)
     public float chestSpawnDistanceMax = 12f;
     public float chestSpawnDistanceMin = 5f;
 
@@ -96,10 +97,21 @@ public class EnemySpawner : MonoBehaviour
 
     IEnumerator SpawnChestRoutine()
     {
+        // 1. Chờ nhịp rương đầu tiên (5 giây) để bạn test thấy ngay lập tức
+        yield return new WaitForSeconds(chestFirstSpawnDelay);
+
+        if (player == null && PlayerStats.Instance != null) player = PlayerStats.Instance.transform;
+        if (player != null && lootChestPrefab != null)
+        {
+            SpawnChest();
+        }
+
+        // 2. Sau đó tiếp tục lặp lại theo chu kỳ chestSpawnInterval (45 giây)
         while (true)
         {
             yield return new WaitForSeconds(chestSpawnInterval);
 
+            if (player == null && PlayerStats.Instance != null) player = PlayerStats.Instance.transform;
             if (player == null || lootChestPrefab == null) continue;
 
             SpawnChest();
@@ -203,11 +215,15 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnChest()
     {
+        if (player == null) return;
+
         float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
         float randomDistance = Random.Range(chestSpawnDistanceMin, chestSpawnDistanceMax);
         Vector3 spawnOffset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * randomDistance;
         Vector3 spawnPos = player.position + spawnOffset;
+        spawnPos.z = 0f; // Khóa chặt trục Z = 0 để rương luôn nổi lên trên mặt phẳng 2D, không chìm sau nền
 
-        Instantiate(lootChestPrefab, spawnPos, Quaternion.identity);
+        GameObject chestObj = Instantiate(lootChestPrefab, spawnPos, Quaternion.identity);
+        Debug.Log($"<color=cyan>[LOOT CHEST] Rương đã xuất hiện tại tọa độ: {spawnPos} (Cách người chơi {randomDistance:F1}m)</color>");
     }
 }

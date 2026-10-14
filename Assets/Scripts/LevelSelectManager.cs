@@ -49,7 +49,7 @@ public class LevelSelectManager : MonoBehaviour
 
         // Tự động chọn màn đã chơi lần trước hoặc node mặc định
         DifficultyLevel lastDiff = GameDataManager.GetSelectedDifficulty();
-        LevelNode[] allNodes = FindObjectsByType<LevelNode>(FindObjectsSortMode.None);
+        LevelNode[] allNodes = FindObjectsByType<LevelNode>();
 
         LevelNode targetNode = null;
         foreach (var node in allNodes)
