@@ -9,7 +9,13 @@ public class LevelNode : MonoBehaviour
 
     [Header("Level Display Information")]
     public string levelName; // Tên màn chơi
-    public Sprite mapPreviewImage; // Ảnh nền preview
+    public Sprite mapPreviewImage; // Ảnh nền preview tại Menu Chọn Màn
+
+    [Header("In-Game Background (Map Gameplay)")]
+    [Tooltip("Ảnh nền trôi vô tận trong GameplayScene. Nếu để trống, hệ thống sẽ tự động dùng ảnh mapPreviewImage.")]
+    public Sprite inGameBackgroundSprite;
+    [Tooltip("(Tùy chọn) Material riêng nếu màn chơi này dùng Shader/Material khác.")]
+    public Material inGameBackgroundMaterial;
 
     [TextArea(3, 5)]
     public string levelDetail; // Mô tả chi tiết màn chơi (cho phép gõ nhiều dòng)

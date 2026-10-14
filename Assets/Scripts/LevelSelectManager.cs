@@ -32,6 +32,7 @@ public class LevelSelectManager : MonoBehaviour
     private Coroutine fadeCoroutine;
     private string selectedLevelName;
     private DifficultyLevel selectedDifficulty = DifficultyLevel.Normal;
+    private LevelNode selectedNode;
 
     void Start()
     {
@@ -80,6 +81,7 @@ public class LevelSelectManager : MonoBehaviour
 
         selectedDifficulty = node.difficulty;
         selectedLevelName = node.levelName;
+        selectedNode = node;
 
         // 1. Cập nhật toàn bộ thông tin lên UI
         if (txtLevelName != null) txtLevelName.text = node.levelName;
@@ -135,6 +137,15 @@ public class LevelSelectManager : MonoBehaviour
     {
         // Lưu trạng thái độ khó đã chọn vào GameDataManager
         GameDataManager.SetSelectedDifficulty(selectedDifficulty);
+
+        // Truyền thông tin Background tương ứng của Level vừa chọn sang GameplayScene
+        if (selectedNode != null)
+        {
+            Sprite bgToUse = selectedNode.inGameBackgroundSprite != null ? selectedNode.inGameBackgroundSprite : selectedNode.mapPreviewImage;
+            GameDataManager.SelectedBackgroundSprite = bgToUse;
+            GameDataManager.SelectedBackgroundMaterial = selectedNode.inGameBackgroundMaterial;
+        }
+
         Debug.Log($"[LEVEL SELECT] Bắt đầu màn: {selectedLevelName} | Độ khó: {selectedDifficulty} -> Tải GameplayScene");
 
         // Tải duy nhất 1 Scene Gameplay (Scene tự thích ứng độ khó)

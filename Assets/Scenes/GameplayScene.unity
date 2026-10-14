@@ -2359,6 +2359,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InfiniteBackground
   scrollFactor: 0.5
+  defaultBackgroundSprite: {fileID: 0}
 --- !u!23 &513677495
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5159,6 +5160,38 @@ MonoBehaviour:
   countdownText: {fileID: 1918934716}
   waveSlider: {fileID: 796596829}
   killText: {fileID: 0}
+  difficultyBadgeText: {fileID: 0}
+  customConfigs: []
+  activeConfig:
+    level: 1
+    difficultyName: "B\xECnh Th\u01B0\u1EDDng"
+    levelDescription: "Ch\u1EBF \u0111\u1ED9 ti\xEAu chu\u1EA9n v\u1EDBi \u0111\u1ED9
+      kh\xF3 t\u0103ng d\u1EA7n."
+    isEndless: 0
+    stageDuration: 600
+    warningThreshold: 20
+    endlessBossInterval: 120
+    baseSpawnInterval: 1
+    minSpawnInterval: 0.5
+    baseMaxEnemies: 60
+    maxEnemiesCap: 100
+    waveDuration: 30
+    baseHpMultiplier: 1.5
+    hpGrowthPerWave: 0.25
+    armorStartWave: 4
+    armorGrowthRate: 0.5
+    minDamage: 8
+    maxDamage: 18
+    baseMoveSpeed: 2
+    maxMoveSpeed: 3
+    knockbackResistance: 35
+    goldMultiplier: 1.5
+    expMultiplier: 1.25
+    scoreMultiplier: 1.5
+    bossPrefabOverride: {fileID: 0}
+    backgroundSpriteOverride: {fileID: 0}
+    backgroundMaterialOverride: {fileID: 0}
+  isEndlessMode: 0
   killCount: 0
   totalMatchTime: 61
   warningThreshold: 15
@@ -6449,6 +6482,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   enemyPrefab: {fileID: 1548041359581747089, guid: f72f2118643651845932b452e78ea0d6, type: 3}
+  enemyPrefabs: []
   player: {fileID: 1670195641}
   spawnInterval: 1
   spawnDistance: 14
@@ -6458,6 +6492,36 @@ MonoBehaviour:
   chestSpawnDistanceMax: 12
   chestSpawnDistanceMin: 5
   gameTime: 0
+  currentWave: 1
+  config:
+    level: 1
+    difficultyName: "B\xECnh Th\u01B0\u1EDDng"
+    levelDescription: "Ch\u1EBF \u0111\u1ED9 ti\xEAu chu\u1EA9n v\u1EDBi \u0111\u1ED9
+      kh\xF3 t\u0103ng d\u1EA7n."
+    isEndless: 0
+    stageDuration: 600
+    warningThreshold: 20
+    endlessBossInterval: 120
+    baseSpawnInterval: 1
+    minSpawnInterval: 0.5
+    baseMaxEnemies: 60
+    maxEnemiesCap: 100
+    waveDuration: 30
+    baseHpMultiplier: 1.5
+    hpGrowthPerWave: 0.25
+    armorStartWave: 4
+    armorGrowthRate: 0.5
+    minDamage: 8
+    maxDamage: 18
+    baseMoveSpeed: 2
+    maxMoveSpeed: 3
+    knockbackResistance: 35
+    goldMultiplier: 1.5
+    expMultiplier: 1.25
+    scoreMultiplier: 1.5
+    bossPrefabOverride: {fileID: 0}
+    backgroundSpriteOverride: {fileID: 0}
+    backgroundMaterialOverride: {fileID: 0}
 --- !u!4 &1707406241
 Transform:
   m_ObjectHideFlags: 0

@@ -253,6 +253,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55eef8e3683909447ae2a678d3f5c0a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
+  difficulty: 1
+  autoSyncSavedRecords: 1
   levelName: "B\xECnh Th\u01B0\u1EDDng"
   mapPreviewImage: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
@@ -623,6 +625,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55eef8e3683909447ae2a678d3f5c0a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
+  difficulty: 2
+  autoSyncSavedRecords: 1
   levelName: "Kh\xF3"
   mapPreviewImage: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
@@ -764,6 +768,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55eef8e3683909447ae2a678d3f5c0a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
+  difficulty: 0
+  autoSyncSavedRecords: 1
   levelName: "D\u1EC5"
   mapPreviewImage: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
@@ -1337,6 +1343,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55eef8e3683909447ae2a678d3f5c0a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
+  difficulty: 3
+  autoSyncSavedRecords: 1
   levelName: "V\xF4 T\u1EADn"
   mapPreviewImage: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
@@ -2389,6 +2397,7 @@ MonoBehaviour:
   txtSurvivalTime: {fileID: 624282096}
   btnBack: {fileID: 1978244262}
   btnPlay: {fileID: 512806317}
+  defaultSelectedNode: {fileID: 0}
 --- !u!4 &1384652024
 Transform:
   m_ObjectHideFlags: 0

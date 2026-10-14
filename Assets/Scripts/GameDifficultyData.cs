@@ -49,6 +49,10 @@ public class DifficultyConfig
     [Header("Boss Prefab Override (Tùy chọn)")]
     public GameObject bossPrefabOverride;
 
+    [Header("Background Map Override (Tùy chọn)")]
+    public Sprite backgroundSpriteOverride;
+    public Material backgroundMaterialOverride;
+
     // Factory tạo cấu hình mặc định chuẩn chỉnh theo tài liệu phân tích kỹ thuật
     public static DifficultyConfig GetDefault(DifficultyLevel targetLevel)
     {

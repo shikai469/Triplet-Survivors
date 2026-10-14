@@ -52,6 +52,10 @@ public static class GameDataManager
         return GetUpgradeLevel("Curse");
     }
 
+    // --- QUẢN LÝ DỮ LIỆU BACKGROUND TRUYỀN GIỮA LEVEL SELECT VÀ GAMEPLAY SCENE ---
+    public static Sprite SelectedBackgroundSprite { get; set; }
+    public static Material SelectedBackgroundMaterial { get; set; }
+
     // --- QUẢN LÝ ĐỘ KHÓ / LEVEL ĐƯỢC CHỌN (GIAO THỨC CHUYỂN SCENE) ---
 
     public static DifficultyLevel GetSelectedDifficulty()
