@@ -20,26 +20,26 @@ public class PlayerAttack : MonoBehaviour
 
     void FindAndShootClosestEnemy()
     {
-        // Quét tất cả các object có Collider trong vòng tròn bán kính attackRange
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, attackRange);
         Transform closestEnemy = null;
-        float minDistance = Mathf.Infinity;
+        float attackRangeSqr = attackRange * attackRange;
+        float minDistanceSqr = attackRangeSqr;
+        Vector3 playerPos = transform.position;
 
-        // Duyệt mảng để tìm quái vật gần nhất mang Tag "Enemy"
-        foreach (Collider2D hit in hitColliders)
+        int count = EnemyHealth.ActiveEnemies.Count;
+        for (int i = 0; i < count; i++)
         {
-            if (hit.CompareTag("Enemy"))
+            EnemyHealth enemy = EnemyHealth.ActiveEnemies[i];
+            if (enemy == null) continue;
+
+            float distSqr = (enemy.transform.position - playerPos).sqrMagnitude;
+            if (distSqr < minDistanceSqr)
             {
-                float distance = Vector2.Distance(transform.position, hit.transform.position);
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    closestEnemy = hit.transform;
-                }
+                minDistanceSqr = distSqr;
+                closestEnemy = enemy.transform;
             }
         }
 
-        // Nếu tìm thấy mục tiêu, bắn đạn
+        // Nếu tìm thấy mục tiêu trong tầm bắn, bắn đạn
         if (closestEnemy != null)
         {
             Shoot(closestEnemy);
@@ -48,14 +48,21 @@ public class PlayerAttack : MonoBehaviour
 
     void Shoot(Transform target)
     {
+        if (bulletPrefab == null || target == null) return;
+
         // Khởi tạo viên đạn tại vị trí Player
         GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+        if (bullet == null) return;
 
         // Tính hướng bay từ người chơi tới quái vật
         Vector2 shootDirection = (target.position - transform.position).normalized;
 
-        // Gắn vận tốc cho đạn (Unity 6 dùng linearVelocity)
-        bullet.GetComponent<Rigidbody2D>().linearVelocity = shootDirection * 10f;
+        // Gắn vận tốc cho đạn nếu có Rigidbody2D
+        Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.linearVelocity = shootDirection * 10f;
+        }
 
         // Tự động hủy viên đạn sau 2 giây để tránh tràn bộ nhớ
         Destroy(bullet, 2f);

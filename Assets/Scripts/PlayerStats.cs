@@ -127,7 +127,10 @@ public class PlayerStats : MonoBehaviour
 
     public void AddGold(int baseAmount)
     {
-        int finalGold = baseAmount + coinBonus;
+        float mult = (GameStageManager.Instance != null && GameStageManager.Instance.activeConfig != null)
+            ? GameStageManager.Instance.activeConfig.goldMultiplier
+            : 1.0f;
+        int finalGold = Mathf.RoundToInt(baseAmount * mult) + coinBonus;
         goldCount += finalGold;
         UpdateUI();
     }

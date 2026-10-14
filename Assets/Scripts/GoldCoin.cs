@@ -1,10 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GoldCoin : MonoBehaviour
 {
+    // Danh sách theo dõi toàn bộ tiền vàng đang tồn tại trên bản đồ (Zero GC Alloc)
+    public static readonly List<GoldCoin> ActiveCoins = new List<GoldCoin>(128);
+
     [Header("Coin Value Range")]
-    public int minCoinValue = 4;       // Tối thiểu 3 vàng
-    public int maxCoinValue = 8;       // Tối đa 6 vàng
+    public int minCoinValue = 4;       // Tối thiểu 4 vàng
+    public int maxCoinValue = 8;       // Tối đa 8 vàng
 
     [Header("Magnet Physics")]
     public float initialSpeed = 2f;
@@ -14,6 +18,16 @@ public class GoldCoin : MonoBehaviour
     private Transform targetPlayer;
     private float currentSpeed;
     private bool isCollected = false;
+
+    void OnEnable()
+    {
+        ActiveCoins.Add(this);
+    }
+
+    void OnDisable()
+    {
+        ActiveCoins.Remove(this);
+    }
 
     void Start()
     {

@@ -50,6 +50,16 @@ public class GameOverController : MonoBehaviour
 
     public void TriggerGameOver(int kills, int goldCollected, float surviveTime)
     {
+        TriggerGameOver(kills, goldCollected, surviveTime, false);
+    }
+
+    public void TriggerStageClear(int kills, int goldCollected, float surviveTime)
+    {
+        TriggerGameOver(kills, goldCollected, surviveTime, true);
+    }
+
+    public void TriggerGameOver(int kills, int goldCollected, float surviveTime, bool isVictory)
+    {
         if (IsGameOver) return;
         IsGameOver = true;
 
@@ -71,12 +81,12 @@ public class GameOverController : MonoBehaviour
             gameplayUIRoot.SetActive(false);
         }
 
-        StartCoroutine(GameOverSequenceRoutine(kills, goldCollected, surviveTime));
+        StartCoroutine(GameOverSequenceRoutine(kills, goldCollected, surviveTime, isVictory));
     }
 
     private void StopPlayerCompletely()
     {
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        GameObject playerObj = (PlayerStats.Instance != null) ? PlayerStats.Instance.gameObject : GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
             Rigidbody2D rb = playerObj.GetComponent<Rigidbody2D>();
@@ -95,10 +105,24 @@ public class GameOverController : MonoBehaviour
         }
     }
 
-    private IEnumerator GameOverSequenceRoutine(int kills, int goldCollected, float surviveTime)
+    private IEnumerator GameOverSequenceRoutine(int kills, int goldCollected, float surviveTime, bool isVictory)
     {
         gameOverCanvasGroup.gameObject.SetActive(true);
         if (levelUpPanel != null) levelUpPanel.SetActive(false);
+
+        if (textGameOver != null)
+        {
+            if (isVictory)
+            {
+                textGameOver.text = "CHIẾN THẮNG!";
+                textGameOver.color = new Color(1f, 0.85f, 0.1f, 1f); // Màu vàng hoàng kim
+            }
+            else
+            {
+                textGameOver.text = "GAME OVER";
+                textGameOver.color = Color.white;
+            }
+        }
 
         if (textScore != null) textScore.gameObject.SetActive(false);
         if (textStats != null) textStats.gameObject.SetActive(false);
@@ -119,9 +143,26 @@ public class GameOverController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.25f);
 
-        // BƯỚC 2: Tính điểm và kịch trần ở 9999
-        int calculatedScore = (kills * 10) + (goldCollected * 5) + Mathf.RoundToInt(surviveTime * 2f);
-        int targetScore = Mathf.Min(calculatedScore, maxScoreCap); // Chặn cứng tối đa 9999
+        // BƯỚC 2: Tính điểm và kịch trần ở 99999 (có nhân hệ số theo độ khó)
+        DifficultyLevel activeDiff = GameDataManager.GetSelectedDifficulty();
+        DifficultyConfig cfg = DifficultyConfig.GetDefault(activeDiff);
+
+        int baseCalculatedScore = (kills * 10) + (goldCollected * 5) + Mathf.RoundToInt(surviveTime * 2f);
+        if (isVictory) baseCalculatedScore += 1000; // Thưởng chiến thắng
+        int calculatedScore = Mathf.RoundToInt(baseCalculatedScore * cfg.scoreMultiplier);
+        int targetScore = Mathf.Min(calculatedScore, maxScoreCap);
+
+        // Lưu kỷ lục vào GameDataManager
+        if (isVictory)
+        {
+            GameDataManager.AddClearCount(activeDiff);
+        }
+        else
+        {
+            GameDataManager.AddDeathCount(activeDiff);
+        }
+        GameDataManager.SaveSurvivalTime(activeDiff, surviveTime);
+        GameDataManager.SaveBestScore(activeDiff, targetScore);
 
         if (textScore != null)
         {

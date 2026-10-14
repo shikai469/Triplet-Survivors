@@ -33,8 +33,8 @@ public class LootDrop : MonoBehaviour
             currentSpeed = Mathf.MoveTowards(currentSpeed, maxSpeed, acceleration * Time.deltaTime);
             transform.position = Vector3.MoveTowards(transform.position, targetPlayer.position, currentSpeed * Time.deltaTime);
 
-            float distanceToPlayer = Vector3.Distance(transform.position, targetPlayer.position);
-            if (distanceToPlayer < 1.5f)
+            float distanceSqr = (transform.position - targetPlayer.position).sqrMagnitude;
+            if (distanceSqr < 2.25f) // 1.5 * 1.5 = 2.25f
             {
                 ApplyLootEffect();
             }
@@ -114,11 +114,19 @@ public class LootDrop : MonoBehaviour
 
     private void TriggerMagnet(Transform playerTransform)
     {
-        GameObject[] xpDrops = GameObject.FindGameObjectsWithTag("XPCrystal");
-        foreach (GameObject xp in xpDrops) xp.GetComponent<XPCrystal>().AttractToPlayer(playerTransform);
+        int xpCount = XPCrystal.ActiveCrystals.Count;
+        for (int i = 0; i < xpCount; i++)
+        {
+            XPCrystal xp = XPCrystal.ActiveCrystals[i];
+            if (xp != null) xp.AttractToPlayer(playerTransform);
+        }
 
-        GameObject[] goldDrops = GameObject.FindGameObjectsWithTag("GoldCoin");
-        foreach (GameObject gold in goldDrops) gold.GetComponent<GoldCoin>().AttractToPlayer(playerTransform);
+        int goldCount = GoldCoin.ActiveCoins.Count;
+        for (int i = 0; i < goldCount; i++)
+        {
+            GoldCoin gold = GoldCoin.ActiveCoins[i];
+            if (gold != null) gold.AttractToPlayer(playerTransform);
+        }
     }
 
     private void ShowFloatingText(Vector3 position, string text)

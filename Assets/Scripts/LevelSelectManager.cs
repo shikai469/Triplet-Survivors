@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement; // Thêm thư viện này để load Scene
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class LevelSelectManager : MonoBehaviour
@@ -23,15 +23,19 @@ public class LevelSelectManager : MonoBehaviour
     public TextMeshProUGUI txtSurvivalTime;
 
     [Header("Navigation Buttons")]
-    public Button btnBack; // Khai báo nút Quay Lại
-    public Button btnPlay; // Khai báo nút CHƠI (Bắt Đầu Game)
+    public Button btnBack; // Nút Quay Lại
+    public Button btnPlay; // Nút CHƠI (Bắt Đầu Game)
+
+    [Header("Default Selection (Optional)")]
+    public LevelNode defaultSelectedNode;
 
     private Coroutine fadeCoroutine;
-    private string selectedLevelName; // Biến lưu lại tên map người chơi vừa chọn
+    private string selectedLevelName;
+    private DifficultyLevel selectedDifficulty = DifficultyLevel.Normal;
 
     void Start()
     {
-        // Gán sự kiện cho 2 nút khi Scene vừa load lên
+        // Gán sự kiện cho 2 nút điều hướng
         if (btnBack != null)
         {
             btnBack.onClick.AddListener(BackToMainMenu);
@@ -41,11 +45,40 @@ public class LevelSelectManager : MonoBehaviour
         {
             btnPlay.onClick.AddListener(StartGame);
         }
+
+        // Tự động chọn màn đã chơi lần trước hoặc node mặc định
+        DifficultyLevel lastDiff = GameDataManager.GetSelectedDifficulty();
+        LevelNode[] allNodes = FindObjectsByType<LevelNode>(FindObjectsSortMode.None);
+
+        LevelNode targetNode = null;
+        foreach (var node in allNodes)
+        {
+            if (node.difficulty == lastDiff)
+            {
+                targetNode = node;
+                break;
+            }
+        }
+
+        if (targetNode == null && defaultSelectedNode != null)
+        {
+            targetNode = defaultSelectedNode;
+        }
+
+        if (targetNode != null)
+        {
+            OnLevelSelected(targetNode);
+        }
     }
 
     public void OnLevelSelected(LevelNode node)
     {
-        // Lưu lại tên map để khi bấm "CHƠI" thì biết truyền vào màn nào
+        if (node == null) return;
+
+        // Làm mới dữ liệu kỷ lục thực tế
+        node.RefreshRecords();
+
+        selectedDifficulty = node.difficulty;
         selectedLevelName = node.levelName;
 
         // 1. Cập nhật toàn bộ thông tin lên UI
@@ -57,14 +90,14 @@ public class LevelSelectManager : MonoBehaviour
         if (txtDeathCount != null) txtDeathCount.text = $"Death Count: {node.deathCount}";
         if (txtSurvivalTime != null) txtSurvivalTime.text = $"Survival Time: {node.survivalTime}";
 
-        // 2. Kích hoạt Animation
+        // 2. Kích hoạt Animation giao diện
         if (uiAnimator != null)
         {
             uiAnimator.SetTrigger("Show");
         }
 
-        // 3. Đổi ảnh nền
-        if (node.mapPreviewImage != null)
+        // 3. Đổi ảnh nền mượt mà
+        if (node.mapPreviewImage != null && bgTransition != null && bgMain != null)
         {
             if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
             fadeCoroutine = StartCoroutine(CrossfadeBackground(node.mapPreviewImage));
@@ -100,9 +133,11 @@ public class LevelSelectManager : MonoBehaviour
 
     public void StartGame()
     {
-        // Tùy theo logic game của bạn, bạn có thể truyền selectedLevelName sang GameplayScene.
-        // Tạm thời, ta chỉ load scene GameplayScene.
-        Debug.Log("Đang tải map: " + selectedLevelName);
+        // Lưu trạng thái độ khó đã chọn vào GameDataManager
+        GameDataManager.SetSelectedDifficulty(selectedDifficulty);
+        Debug.Log($"[LEVEL SELECT] Bắt đầu màn: {selectedLevelName} | Độ khó: {selectedDifficulty} -> Tải GameplayScene");
+
+        // Tải duy nhất 1 Scene Gameplay (Scene tự thích ứng độ khó)
         SceneManager.LoadScene("GameplayScene");
     }
 }

@@ -15,6 +15,14 @@ public class CountdownController : MonoBehaviour
 
     IEnumerator CountdownRoutine()
     {
+        if (startCountdownText == null)
+        {
+            Time.timeScale = 1f;
+            if (dimBackground != null) dimBackground.SetActive(false);
+            if (gameplayUIRoot != null) gameplayUIRoot.SetActive(true);
+            yield break;
+        }
+
         // Đóng băng game
         Time.timeScale = 0f;
 

@@ -26,24 +26,27 @@ public class BulletLogic : MonoBehaviour
 
     void FindNearestEnemy()
     {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        GameObject nearestEnemy = null;
-        float minDistance = Mathf.Infinity;
+        Transform nearestEnemy = null;
+        float minDistanceSqr = Mathf.Infinity;
         Vector3 currentPosition = transform.position;
 
-        foreach (GameObject enemy in enemies)
+        int enemyCount = EnemyHealth.ActiveEnemies.Count;
+        for (int i = 0; i < enemyCount; i++)
         {
-            float dist = Vector3.Distance(enemy.transform.position, currentPosition);
-            if (dist < minDistance)
+            EnemyHealth enemy = EnemyHealth.ActiveEnemies[i];
+            if (enemy == null) continue;
+
+            float distSqr = (enemy.transform.position - currentPosition).sqrMagnitude;
+            if (distSqr < minDistanceSqr)
             {
-                minDistance = dist;
-                nearestEnemy = enemy;
+                minDistanceSqr = distSqr;
+                nearestEnemy = enemy.transform;
             }
         }
 
         if (nearestEnemy != null)
         {
-            Vector2 targetDir = (nearestEnemy.transform.position - transform.position).normalized;
+            Vector2 targetDir = (nearestEnemy.position - currentPosition).normalized;
             SetDirection(targetDir);
         }
     }
@@ -85,7 +88,7 @@ public class BulletLogic : MonoBehaviour
                 EnemyHealth enemy = hitInfo.GetComponent<EnemyHealth>();
                 if (enemy != null)
                 {
-                    enemy.TakeDamage(Mathf.RoundToInt(finalDmg), isCrit);
+                    enemy.TakeDamage(Mathf.RoundToInt(finalDmg), isCrit, moveDirection);
                 }
             }
 

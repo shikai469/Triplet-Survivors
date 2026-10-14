@@ -6,6 +6,18 @@ public class PlayerXpPickup : MonoBehaviour
     public float baseMagnetRange = 3f; // Tầm hút gốc
     public LayerMask collectiblesLayer;
 
+    // Bộ đệm tái sử dụng và bộ lọc va chạm theo chuẩn Unity 6 (Zero GC Alloc)
+    private ContactFilter2D contactFilter;
+    private readonly Collider2D[] hitBuffer = new Collider2D[64];
+
+    void Awake()
+    {
+        contactFilter = new ContactFilter2D();
+        contactFilter.SetLayerMask(collectiblesLayer);
+        contactFilter.useLayerMask = true;
+        contactFilter.useTriggers = true;
+    }
+
     void Update()
     {
         // Tính bán kính hút theo công thức: Base * (1 + Bonus)
@@ -15,18 +27,24 @@ public class PlayerXpPickup : MonoBehaviour
             currentRange = baseMagnetRange * (1f + PlayerStats.Instance.magnetRangeBonus);
         }
 
-        // Quét tìm vật phẩm rơi trong bán kính nam châm
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, currentRange, collectiblesLayer);
+        // Cập nhật LayerMask trong trường hợp thay đổi trên Inspector
+        contactFilter.layerMask = collectiblesLayer;
+        contactFilter.useLayerMask = collectiblesLayer.value != 0;
 
-        foreach (Collider2D col in hitColliders)
+        // Quét vật phẩm rơi bằng Physics2D.OverlapCircle theo API mới nhất của Unity 6 (thay cho OverlapCircleNonAlloc)
+        int hitCount = Physics2D.OverlapCircle(transform.position, currentRange, contactFilter, hitBuffer);
+
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider2D col = hitBuffer[i];
+            if (col == null) continue;
+
             XPCrystal xp = col.GetComponent<XPCrystal>();
             if (xp != null) xp.AttractToPlayer(transform);
 
             GoldCoin gold = col.GetComponent<GoldCoin>();
             if (gold != null) gold.AttractToPlayer(transform);
 
-            // ĐÃ SỬA: Gọi và hút LootDrop thay vì LootChest
             LootDrop drop = col.GetComponent<LootDrop>();
             if (drop != null) drop.AttractToPlayer(transform);
         }

@@ -1,7 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class XPCrystal : MonoBehaviour
 {
+    // Danh sách theo dõi toàn bộ ngọc EXP đang tồn tại trên bản đồ (Zero GC Alloc)
+    public static readonly List<XPCrystal> ActiveCrystals = new List<XPCrystal>(128);
+
     [Header("XP Settings")]
     public int xpValue = 5;
     public float initialSpeed = 3f;
@@ -11,6 +15,16 @@ public class XPCrystal : MonoBehaviour
     private Transform targetPlayer;
     private float currentSpeed;
     private bool isCollected = false;
+
+    void OnEnable()
+    {
+        ActiveCrystals.Add(this);
+    }
+
+    void OnDisable()
+    {
+        ActiveCrystals.Remove(this);
+    }
 
     void Start()
     {

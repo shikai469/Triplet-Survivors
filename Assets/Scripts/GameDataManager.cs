@@ -3,6 +3,9 @@ using UnityEngine;
 public static class GameDataManager
 {
     private const string TOTAL_GOLD_KEY = "Player_TotalGold";
+    private const string SELECTED_DIFFICULTY_KEY = "Player_SelectedDifficulty";
+
+    // --- QUẢN LÝ TIỀN VÀNG & NÂNG CẤP ---
 
     // Lấy tổng số vàng vĩnh viễn ngoài Menu
     public static int GetTotalGold()
@@ -41,5 +44,92 @@ public static class GameDataManager
     {
         PlayerPrefs.SetInt("Powerup_" + upgradeKey, level);
         PlayerPrefs.Save();
+    }
+
+    // Lấy cấp độ Lời Nguyền (Curse) - Mỗi cấp tăng 10% máu quái vật
+    public static int GetCurseLevel()
+    {
+        return GetUpgradeLevel("Curse");
+    }
+
+    // --- QUẢN LÝ ĐỘ KHÓ / LEVEL ĐƯỢC CHỌN (GIAO THỨC CHUYỂN SCENE) ---
+
+    public static DifficultyLevel GetSelectedDifficulty()
+    {
+        int diffInt = PlayerPrefs.GetInt(SELECTED_DIFFICULTY_KEY, (int)DifficultyLevel.Normal);
+        return (DifficultyLevel)diffInt;
+    }
+
+    public static void SetSelectedDifficulty(DifficultyLevel difficulty)
+    {
+        PlayerPrefs.SetInt(SELECTED_DIFFICULTY_KEY, (int)difficulty);
+        PlayerPrefs.Save();
+    }
+
+    // --- QUẢN LÝ KỶ LỤC TỪNG ĐỘ KHÓ (CLEAR, DEATH, SURVIVAL TIME, SCORE) ---
+
+    private static string GetDiffPrefix(DifficultyLevel diff) => "Record_" + diff.ToString() + "_";
+
+    public static int GetClearCount(DifficultyLevel diff)
+    {
+        return PlayerPrefs.GetInt(GetDiffPrefix(diff) + "ClearCount", 0);
+    }
+
+    public static void AddClearCount(DifficultyLevel diff)
+    {
+        int count = GetClearCount(diff) + 1;
+        PlayerPrefs.SetInt(GetDiffPrefix(diff) + "ClearCount", count);
+        PlayerPrefs.Save();
+    }
+
+    public static int GetDeathCount(DifficultyLevel diff)
+    {
+        return PlayerPrefs.GetInt(GetDiffPrefix(diff) + "DeathCount", 0);
+    }
+
+    public static void AddDeathCount(DifficultyLevel diff)
+    {
+        int count = GetDeathCount(diff) + 1;
+        PlayerPrefs.SetInt(GetDiffPrefix(diff) + "DeathCount", count);
+        PlayerPrefs.Save();
+    }
+
+    public static float GetBestSurvivalTime(DifficultyLevel diff)
+    {
+        return PlayerPrefs.GetFloat(GetDiffPrefix(diff) + "BestTime", 0f);
+    }
+
+    public static void SaveSurvivalTime(DifficultyLevel diff, float seconds)
+    {
+        float currentBest = GetBestSurvivalTime(diff);
+        if (seconds > currentBest)
+        {
+            PlayerPrefs.SetFloat(GetDiffPrefix(diff) + "BestTime", seconds);
+            PlayerPrefs.Save();
+        }
+    }
+
+    public static string GetFormattedBestSurvivalTime(DifficultyLevel diff)
+    {
+        float best = GetBestSurvivalTime(diff);
+        if (best <= 0f) return "--:--";
+        int m = Mathf.FloorToInt(best / 60f);
+        int s = Mathf.FloorToInt(best % 60f);
+        return string.Format("{0:00}:{1:00}", m, s);
+    }
+
+    public static int GetBestScore(DifficultyLevel diff)
+    {
+        return PlayerPrefs.GetInt(GetDiffPrefix(diff) + "BestScore", 0);
+    }
+
+    public static void SaveBestScore(DifficultyLevel diff, int score)
+    {
+        int currentBest = GetBestScore(diff);
+        if (score > currentBest)
+        {
+            PlayerPrefs.SetInt(GetDiffPrefix(diff) + "BestScore", score);
+            PlayerPrefs.Save();
+        }
     }
 }
