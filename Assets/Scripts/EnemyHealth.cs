@@ -14,20 +14,21 @@ public class EnemyHealth : MonoBehaviour
     public float knockbackResistance = 50f; // Theo tài liệu: 50 (dễ lùi), 35 (trung bình), 0 (miễn nhiễm)
     public bool isBoss = false;             // Đánh dấu thực thể là Boss
 
-    void OnEnable()
-    {
-        ActiveEnemies.Add(this);
-    }
-
-    void OnDisable()
-    {
-        ActiveEnemies.Remove(this);
-    }
-
     void Awake()
     {
         maxHealth = baseMaxHealth;
         currentHealth = maxHealth;
+    }
+
+    void OnEnable()
+    {
+        // Đăng ký vào danh sách quái đang sống
+        ActiveEnemies.Add(this);
+        // Reset lại trạng thái khi lấy từ pool
+        if (maxHealth > 0f) currentHealth = maxHealth;
+        isBoss = false;
+        armor = 0;
+        knockbackResistance = 50f;
     }
 
     // Hàm nhận buff theo wave / thời gian và độ khó từ Spawner
@@ -86,6 +87,21 @@ public class EnemyHealth : MonoBehaviour
             loot.DropLoot();
         }
 
-        Destroy(gameObject);
+        // Trả về pool thay vì Destroy
+        ReturnToPool();
+    }
+
+    // Gỡ khỏi ActiveEnemies khi bị tắt (trả pool hoặc destroy)
+    void OnDisable()
+    {
+        ActiveEnemies.Remove(this);
+    }
+
+    private void ReturnToPool()
+    {
+        if (ObjectPool.Instance != null)
+            ObjectPool.Instance.Return(gameObject);
+        else
+            Destroy(gameObject);
     }
 }

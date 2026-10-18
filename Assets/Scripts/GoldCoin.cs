@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GoldCoin : MonoBehaviour
+public class GoldCoin : MonoBehaviour, ICollectible
 {
     // Danh sách theo dõi toàn bộ tiền vàng đang tồn tại trên bản đồ (Zero GC Alloc)
     public static readonly List<GoldCoin> ActiveCoins = new List<GoldCoin>(128);
@@ -22,16 +22,15 @@ public class GoldCoin : MonoBehaviour
     void OnEnable()
     {
         ActiveCoins.Add(this);
+        // Reset trạng thái khi lấy từ pool
+        targetPlayer = null;
+        currentSpeed = initialSpeed;
+        isCollected = false;
     }
 
     void OnDisable()
     {
         ActiveCoins.Remove(this);
-    }
-
-    void Start()
-    {
-        currentSpeed = initialSpeed;
     }
 
     void Update()
@@ -61,7 +60,11 @@ public class GoldCoin : MonoBehaviour
                 PlayerStats.Instance.AddGold(droppedGold);
             }
 
-            Destroy(gameObject);
+            // Trả về pool thay vì Destroy
+            if (ObjectPool.Instance != null)
+                ObjectPool.Instance.Return(gameObject);
+            else
+                Destroy(gameObject);
         }
     }
 }

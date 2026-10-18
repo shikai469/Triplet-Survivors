@@ -22,6 +22,8 @@ public class PlayerHealth : MonoBehaviour
     public TextMeshProUGUI healthText; // Hiển thị số dạng "100 / 100"
 
     private SpriteRenderer spriteRenderer;
+    private int lastDisplayedHp = -1;
+    private int lastDisplayedMaxHp = -1;
 
     void Awake()
     {
@@ -153,9 +155,13 @@ public class PlayerHealth : MonoBehaviour
             healthSlider.value = currentHealth;
         }
 
-        if (healthText != null)
+        int curInt = Mathf.CeilToInt(currentHealth);
+        int maxInt = Mathf.CeilToInt(maxHealth);
+        if (healthText != null && (curInt != lastDisplayedHp || maxInt != lastDisplayedMaxHp))
         {
-            healthText.text = $"{Mathf.CeilToInt(currentHealth)} / {Mathf.CeilToInt(maxHealth)}";
+            lastDisplayedHp = curInt;
+            lastDisplayedMaxHp = maxInt;
+            healthText.text = $"{curInt} / {maxInt}";
         }
     }
 

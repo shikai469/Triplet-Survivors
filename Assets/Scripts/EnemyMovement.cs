@@ -6,24 +6,47 @@ public class EnemyMovement : MonoBehaviour
     public float moveSpeed = 2f;
     public int attackDamage = 10;           // Sát thương gây ra cho Player (thay đổi theo độ khó)
     public float knockbackResistance = 50f; // Kháng đẩy lùi
+    public float damageCooldown = 0.5f;     // Cooldown giữa các lần gây sát thương (giảm tải physics)
 
+    private static Transform cachedPlayerTransform;
     private Transform player;
     private Vector2 knockbackVelocity;
     private float knockbackTimer = 0f;
+    private float damageTimer = 0f;
+    private SpriteRenderer spriteRenderer;
+
+    void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    void OnEnable()
+    {
+        // Reset trạng thái khi lấy từ pool tái sử dụng
+        knockbackVelocity = Vector2.zero;
+        knockbackTimer = 0f;
+        damageTimer = 0f;
+
+        // Tối ưu: Dùng static cache để hàng trăm quái không phải scan tìm player
+        if (cachedPlayerTransform == null)
+        {
+            if (PlayerStats.Instance != null)
+                cachedPlayerTransform = PlayerStats.Instance.transform;
+            else
+            {
+                GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+                if (playerObj != null) cachedPlayerTransform = playerObj.transform;
+            }
+        }
+        player = cachedPlayerTransform;
+    }
 
     void Start()
     {
-        if (PlayerStats.Instance != null)
+        if (player == null)
         {
-            player = PlayerStats.Instance.transform;
-        }
-        else
-        {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
-            {
-                player = playerObj.transform;
-            }
+            if (PlayerStats.Instance != null)
+                player = PlayerStats.Instance.transform;
         }
     }
 
@@ -54,6 +77,20 @@ public class EnemyMovement : MonoBehaviour
         else if (player != null)
         {
             transform.position = Vector2.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
+
+            if (spriteRenderer != null)
+            {
+                if (player.position.x < transform.position.x)
+                    spriteRenderer.flipX = true;
+                else if (player.position.x > transform.position.x)
+                    spriteRenderer.flipX = false;
+            }
+        }
+
+        // Đảm bảo quái không bị giật lùi xuyên qua tường bao đấu trường Brotato
+        if (BrotatoArena.Instance != null)
+        {
+            transform.position = BrotatoArena.Instance.ClampPosition(transform.position, 0.4f);
         }
     }
 
@@ -61,10 +98,23 @@ public class EnemyMovement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
-            if (playerHealth != null)
+            // Cooldown chống spam damage mỗi physics frame (giảm tải CPU mobile)
+            damageTimer += Time.deltaTime;
+            if (damageTimer >= damageCooldown)
             {
-                playerHealth.TakeDamage(attackDamage);
+                damageTimer = 0f;
+                if (PlayerHealth.Instance != null)
+                {
+                    PlayerHealth.Instance.TakeDamage(attackDamage);
+                }
+                else
+                {
+                    PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
+                    if (playerHealth != null)
+                    {
+                        playerHealth.TakeDamage(attackDamage);
+                    }
+                }
             }
         }
     }

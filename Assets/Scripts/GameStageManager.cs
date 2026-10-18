@@ -39,6 +39,7 @@ public class GameStageManager : MonoBehaviour
     private bool midWaveTriggered = false;
     private bool bossWaveTriggered = false;
     private GameObject currentActiveBoss = null;
+    private int lastDisplayedSecond = -1;
 
     [Header("Spawners & Boss")]
     public EnemySpawner enemySpawner;
@@ -182,13 +183,20 @@ public class GameStageManager : MonoBehaviour
 
     void UpdateStandardProgressUI()
     {
-        int minutes = Mathf.FloorToInt(currentTime / 60f);
-        int seconds = Mathf.FloorToInt(currentTime % 60f);
+        int totalSec = Mathf.FloorToInt(currentTime);
+        if (totalSec != lastDisplayedSecond)
+        {
+            lastDisplayedSecond = totalSec;
+            int minutes = totalSec / 60;
+            int seconds = totalSec % 60;
+            if (countdownText != null)
+            {
+                countdownText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+            }
+        }
 
         if (countdownText != null)
         {
-            countdownText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-
             if (currentTime <= warningThreshold && currentTime > 0f)
             {
                 float t = Mathf.PingPong(Time.time * flashSpeed, 1f);
@@ -231,13 +239,17 @@ public class GameStageManager : MonoBehaviour
     {
         currentTime += Time.deltaTime; // Thời gian sinh tồn tăng dần
 
-        int minutes = Mathf.FloorToInt(currentTime / 60f);
-        int seconds = Mathf.FloorToInt(currentTime % 60f);
-
-        if (countdownText != null)
+        int totalSec = Mathf.FloorToInt(currentTime);
+        if (totalSec != lastDisplayedSecond)
         {
-            countdownText.text = string.Format("[VÔ TẬN] {0:00}:{1:00}", minutes, seconds);
-            countdownText.color = normalColor;
+            lastDisplayedSecond = totalSec;
+            int minutes = totalSec / 60;
+            int seconds = totalSec % 60;
+            if (countdownText != null)
+            {
+                countdownText.text = string.Format("[VÔ TẬN] {0:00}:{1:00}", minutes, seconds);
+                countdownText.color = normalColor;
+            }
         }
 
         // Thanh tiến độ hiển thị chu kỳ tới lượt Boss tiếp theo
@@ -277,7 +289,10 @@ public class GameStageManager : MonoBehaviour
         if (bossPrefab != null && PlayerStats.Instance != null)
         {
             Vector3 spawnPos = PlayerStats.Instance.transform.position + new Vector3(0, 8f, 0);
-            currentActiveBoss = Instantiate(bossPrefab, spawnPos, Quaternion.identity);
+            // Spawn Boss từ Object Pool
+            currentActiveBoss = ObjectPool.Instance != null
+                ? ObjectPool.Instance.Get(bossPrefab, spawnPos, Quaternion.identity)
+                : Instantiate(bossPrefab, spawnPos, Quaternion.identity);
 
             // Gán thông số Boss
             EnemyHealth bossHealth = currentActiveBoss.GetComponent<EnemyHealth>();

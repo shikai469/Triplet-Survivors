@@ -120,10 +120,27 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnEnemy()
     {
-        // 1. Tính toán vị trí sinh ngẫu nhiên ngoài mép màn hình
+        // 1. Tính toán vị trí sinh quái
         float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
         Vector3 spawnOffset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * spawnDistance;
-        Vector3 spawnPos = player.position + spawnOffset;
+        Vector3 spawnPos;
+
+        if (BrotatoArena.Instance != null)
+        {
+            // Chuẩn phong cách Brotato: 75% quái tràn vào từ 4 cạnh mép đấu trường, 25% sinh rải rác quanh người chơi (đã được clamp an toàn)
+            if (Random.value < 0.75f)
+            {
+                spawnPos = BrotatoArena.Instance.GetBorderSpawnPosition(edgeMargin: 1.0f);
+            }
+            else
+            {
+                spawnPos = BrotatoArena.Instance.ClampPosition(player.position + spawnOffset, padding: 1.2f);
+            }
+        }
+        else
+        {
+            spawnPos = player.position + spawnOffset;
+        }
 
         // Chọn Prefab quái
         GameObject targetPrefab = enemyPrefab;
@@ -134,7 +151,10 @@ public class EnemySpawner : MonoBehaviour
 
         if (targetPrefab == null) return;
 
-        GameObject enemy = Instantiate(targetPrefab, spawnPos, Quaternion.identity);
+        // Spawn từ Object Pool (thay thế Instantiate)
+        GameObject enemy = ObjectPool.Instance != null
+            ? ObjectPool.Instance.Get(targetPrefab, spawnPos, Quaternion.identity)
+            : Instantiate(targetPrefab, spawnPos, Quaternion.identity);
 
         // 2. Thuật toán cân chỉnh chỉ số quái theo PhanTich_LevelSelectManager_MonsterStats.md
         // Lấy hiệu ứng lời nguyền Curse (+10% máu quái mỗi cấp Curse)
@@ -194,7 +214,15 @@ public class EnemySpawner : MonoBehaviour
         }
 
         Vector3 spawnPos = player.position + new Vector3(0, 8f, 0);
-        GameObject boss = Instantiate(bossToSpawn, spawnPos, Quaternion.identity);
+        if (BrotatoArena.Instance != null)
+        {
+            spawnPos = BrotatoArena.Instance.ClampPosition(spawnPos, padding: 2.5f);
+        }
+
+        // Spawn Boss từ Object Pool
+        GameObject boss = ObjectPool.Instance != null
+            ? ObjectPool.Instance.Get(bossToSpawn, spawnPos, Quaternion.identity)
+            : Instantiate(bossToSpawn, spawnPos, Quaternion.identity);
 
         EnemyHealth bossHealth = boss.GetComponent<EnemyHealth>();
         if (bossHealth != null)
@@ -221,9 +249,18 @@ public class EnemySpawner : MonoBehaviour
         float randomDistance = Random.Range(chestSpawnDistanceMin, chestSpawnDistanceMax);
         Vector3 spawnOffset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * randomDistance;
         Vector3 spawnPos = player.position + spawnOffset;
+
+        if (BrotatoArena.Instance != null)
+        {
+            spawnPos = BrotatoArena.Instance.ClampPosition(spawnPos, padding: 2.0f);
+        }
+
         spawnPos.z = 0f; // Khóa chặt trục Z = 0 để rương luôn nổi lên trên mặt phẳng 2D, không chìm sau nền
 
-        GameObject chestObj = Instantiate(lootChestPrefab, spawnPos, Quaternion.identity);
+        // Spawn rương từ Object Pool
+        GameObject chestObj = ObjectPool.Instance != null
+            ? ObjectPool.Instance.Get(lootChestPrefab, spawnPos, Quaternion.identity)
+            : Instantiate(lootChestPrefab, spawnPos, Quaternion.identity);
         Debug.Log($"<color=cyan>[LOOT CHEST] Rương đã xuất hiện tại tọa độ: {spawnPos} (Cách người chơi {randomDistance:F1}m)</color>");
     }
 }

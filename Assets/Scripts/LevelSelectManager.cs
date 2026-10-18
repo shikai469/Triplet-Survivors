@@ -36,7 +36,6 @@ public class LevelSelectManager : MonoBehaviour
 
     void Start()
     {
-        // Gán sự kiện cho 2 nút điều hướng
         if (btnBack != null)
         {
             btnBack.onClick.AddListener(BackToMainMenu);
@@ -47,28 +46,11 @@ public class LevelSelectManager : MonoBehaviour
             btnPlay.onClick.AddListener(StartGame);
         }
 
-        // Tự động chọn màn đã chơi lần trước hoặc node mặc định
-        DifficultyLevel lastDiff = GameDataManager.GetSelectedDifficulty();
+        // Làm mới dữ liệu kỷ lục của các nút mà không tự bật bảng Detail
         LevelNode[] allNodes = FindObjectsByType<LevelNode>();
-
-        LevelNode targetNode = null;
         foreach (var node in allNodes)
         {
-            if (node.difficulty == lastDiff)
-            {
-                targetNode = node;
-                break;
-            }
-        }
-
-        if (targetNode == null && defaultSelectedNode != null)
-        {
-            targetNode = defaultSelectedNode;
-        }
-
-        if (targetNode != null)
-        {
-            OnLevelSelected(targetNode);
+            node.RefreshRecords();
         }
     }
 

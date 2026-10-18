@@ -3,7 +3,7 @@ using TMPro;
 
 public enum LootEffect { Heal, Magnet, Reroll, Invincible }
 
-public class LootDrop : MonoBehaviour
+public class LootDrop : MonoBehaviour, ICollectible
 {
     [Header("UI Prefab")]
     public GameObject floatingTextPrefab;
@@ -20,6 +20,13 @@ public class LootDrop : MonoBehaviour
     private Transform targetPlayer;
     private float currentSpeed;
     private bool isCollected = false;
+
+    void OnEnable()
+    {
+        currentSpeed = initialSpeed;
+        targetPlayer = null;
+        isCollected = false;
+    }
 
     void Start()
     {
@@ -57,7 +64,7 @@ public class LootDrop : MonoBehaviour
         }
     }
 
-    // ĐÃ SỬA: Bỏ tham số player, gọi thẳng qua Instance để chống lỗi
+    // Bỏ tham số player, gọi thẳng qua Instance để chống lỗi
     private void ApplyLootEffect()
     {
         isCollected = true;
@@ -84,7 +91,7 @@ public class LootDrop : MonoBehaviour
                 break;
                 
             case LootEffect.Reroll:
-                UpgradeManager upgradeMgr = FindAnyObjectByType<UpgradeManager>();
+                UpgradeManager upgradeMgr = UpgradeManager.Instance;
                 if (upgradeMgr != null && upgradeMgr.AddReroll(3))
                     message = "+1 Làm mới";
                 else
@@ -100,7 +107,7 @@ public class LootDrop : MonoBehaviour
                 break;
         }
 
-        // ĐÃ SỬA: Lấy vị trí của Player để hiện Text thay vì vị trí của vật phẩm
+        // Lấy vị trí của Player để hiện Text thay vì vị trí của vật phẩm
         Vector3 playerPos = transform.position; // Vị trí dự phòng
         if (PlayerHealth.Instance != null)
         {
@@ -109,7 +116,11 @@ public class LootDrop : MonoBehaviour
 
         ShowFloatingText(playerPos, message);
         
-        Destroy(gameObject); 
+        // Trả về Object Pool thay vì Destroy
+        if (ObjectPool.Instance != null)
+            ObjectPool.Instance.Return(gameObject);
+        else
+            Destroy(gameObject); 
     }
 
     private void TriggerMagnet(Transform playerTransform)
@@ -133,10 +144,12 @@ public class LootDrop : MonoBehaviour
     {
         if (floatingTextPrefab != null)
         {
-            GameObject floatText = Instantiate(floatingTextPrefab, position + new Vector3(0, 1f, 0), Quaternion.identity);
-            TMP_Text tmpText = floatText.GetComponentInChildren<TMP_Text>();
+            Vector3 spawnPos = position + new Vector3(0, 1f, 0);
+            GameObject floatText = ObjectPool.Instance != null
+                ? ObjectPool.Instance.Get(floatingTextPrefab, spawnPos, Quaternion.identity)
+                : Instantiate(floatingTextPrefab, spawnPos, Quaternion.identity);
 
-            // Thêm lớp bảo vệ phòng trường hợp Prefab Text chưa setup chuẩn
+            TMP_Text tmpText = floatText.GetComponentInChildren<TMP_Text>();
             if (tmpText != null)
             {
                 tmpText.text = text;

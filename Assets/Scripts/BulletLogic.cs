@@ -15,13 +15,13 @@ public class BulletLogic : MonoBehaviour
     public float critMultiplier = 1.5f;
 
     private Vector2 moveDirection = Vector2.up;
+    private float aliveTimer;
 
-    void Start()
+    void OnEnable()
     {
-        Destroy(gameObject, lifeTime);
-
-        // Tự động tìm và ngắm vào quái vật gần nhất khi vừa sinh ra
-        FindNearestEnemy();
+        // Reset trạng thái khi lấy từ pool ra tái sử dụng
+        aliveTimer = 0f;
+        pierceCount = 0;
     }
 
     void FindNearestEnemy()
@@ -78,6 +78,13 @@ public class BulletLogic : MonoBehaviour
     void Update()
     {
         transform.Translate(moveDirection * speed * Time.deltaTime, Space.World);
+
+        // Tự động trả về pool sau khi hết thời gian sống (thay thế Destroy timer)
+        aliveTimer += Time.deltaTime;
+        if (aliveTimer >= lifeTime)
+        {
+            ReturnToPool();
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D hitInfo)
@@ -109,12 +116,20 @@ public class BulletLogic : MonoBehaviour
 
             if (pierceCount <= 0)
             {
-                Destroy(gameObject);
+                ReturnToPool();
             }
             else
             {
                 pierceCount--;
             }
         }
+    }
+
+    private void ReturnToPool()
+    {
+        if (ObjectPool.Instance != null)
+            ObjectPool.Instance.Return(gameObject);
+        else
+            Destroy(gameObject);
     }
 }

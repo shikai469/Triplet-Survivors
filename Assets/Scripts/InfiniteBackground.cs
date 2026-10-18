@@ -11,12 +11,19 @@ public class InfiniteBackground : MonoBehaviour
     [Header("Default Fallback Background (Tùy chọn)")]
     public Sprite defaultBackgroundSprite;
 
+    // Cache ID shader properties để tránh GC và string lookup mỗi frame trong Update
+    private static readonly int BaseMapPropId = Shader.PropertyToID("_BaseMap");
+    private static readonly int MainTexPropId = Shader.PropertyToID("_MainTex");
+    private bool hasBaseMap;
+    private bool hasMainTex;
+
     void Awake()
     {
         meshRenderer = GetComponent<MeshRenderer>();
         if (meshRenderer != null)
         {
             mat = meshRenderer.material; // Tạo bản sao Material instance của đối tượng
+            UpdateShaderProperties();
         }
     }
 
@@ -71,6 +78,7 @@ public class InfiniteBackground : MonoBehaviour
         {
             mat = new Material(newMat);
             meshRenderer.material = mat;
+            UpdateShaderProperties();
         }
     }
 
@@ -84,9 +92,17 @@ public class InfiniteBackground : MonoBehaviour
         if (mat != null && newTex != null)
         {
             mat.mainTexture = newTex;
-            if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", newTex);
-            if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", newTex);
+            UpdateShaderProperties();
+            if (hasBaseMap) mat.SetTexture(BaseMapPropId, newTex);
+            if (hasMainTex) mat.SetTexture(MainTexPropId, newTex);
         }
+    }
+
+    private void UpdateShaderProperties()
+    {
+        if (mat == null) return;
+        hasBaseMap = mat.HasProperty(BaseMapPropId);
+        hasMainTex = mat.HasProperty(MainTexPropId);
     }
 
     void Update()
@@ -102,9 +118,9 @@ public class InfiniteBackground : MonoBehaviour
 
         Vector2 offset = new Vector2(x, y);
 
-        // Lệnh bao quát ép trượt ảnh cho cả Shader 2D Sprite-Unlit và 3D URP Lit
+        // Lệnh bao quát ép trượt ảnh cho cả Shader 2D Sprite-Unlit và 3D URP Lit (dùng cached property ID)
         mat.mainTextureOffset = offset;
-        if (mat.HasProperty("_BaseMap")) mat.SetTextureOffset("_BaseMap", offset);
-        if (mat.HasProperty("_MainTex")) mat.SetTextureOffset("_MainTex", offset);
+        if (hasBaseMap) mat.SetTextureOffset(BaseMapPropId, offset);
+        if (hasMainTex) mat.SetTextureOffset(MainTexPropId, offset);
     }
 }

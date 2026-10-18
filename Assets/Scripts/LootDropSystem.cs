@@ -37,8 +37,11 @@ public class LootDropSystem : MonoBehaviour
 
             if (randomValue <= cumulativeChance)
             {
-                // Spawn the item at the enemy's position
-                Instantiate(lootItem.itemPrefab, transform.position, Quaternion.identity);
+                // Spawn vật phẩm từ Object Pool (thay thế Instantiate)
+                if (ObjectPool.Instance != null)
+                    ObjectPool.Instance.Get(lootItem.itemPrefab, transform.position, Quaternion.identity);
+                else
+                    Instantiate(lootItem.itemPrefab, transform.position, Quaternion.identity);
                 return;  // Ensure only one item is dropped
             }
         }

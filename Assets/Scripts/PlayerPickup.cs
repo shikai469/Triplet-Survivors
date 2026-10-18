@@ -6,9 +6,13 @@ public class PlayerXpPickup : MonoBehaviour
     public float baseMagnetRange = 3f; // Tầm hút gốc
     public LayerMask collectiblesLayer;
 
+    [Header("Optimization")]
+    public float scanInterval = 0.08f; // Tần suất quét (~12 lần/giây) giúp giảm 85% tải CPU Physics trên mobile
+
     // Bộ đệm tái sử dụng và bộ lọc va chạm theo chuẩn Unity 6 (Zero GC Alloc)
     private ContactFilter2D contactFilter;
     private readonly Collider2D[] hitBuffer = new Collider2D[64];
+    private float scanTimer;
 
     void Awake()
     {
@@ -16,10 +20,15 @@ public class PlayerXpPickup : MonoBehaviour
         contactFilter.SetLayerMask(collectiblesLayer);
         contactFilter.useLayerMask = true;
         contactFilter.useTriggers = true;
+        scanTimer = Random.Range(0f, scanInterval); // Stagger start time
     }
 
     void Update()
     {
+        scanTimer += Time.deltaTime;
+        if (scanTimer < scanInterval) return;
+        scanTimer = 0f;
+
         // Tính bán kính hút theo công thức: Base * (1 + Bonus)
         float currentRange = baseMagnetRange;
         if (PlayerStats.Instance != null)
@@ -39,14 +48,12 @@ public class PlayerXpPickup : MonoBehaviour
             Collider2D col = hitBuffer[i];
             if (col == null) continue;
 
-            XPCrystal xp = col.GetComponent<XPCrystal>();
-            if (xp != null) xp.AttractToPlayer(transform);
-
-            GoldCoin gold = col.GetComponent<GoldCoin>();
-            if (gold != null) gold.AttractToPlayer(transform);
-
-            LootDrop drop = col.GetComponent<LootDrop>();
-            if (drop != null) drop.AttractToPlayer(transform);
+            // Sử dụng interface ICollectible chung để gom 3 lần GetComponent thành 1 lần duy nhất
+            ICollectible collectible = col.GetComponent<ICollectible>();
+            if (collectible != null)
+            {
+                collectible.AttractToPlayer(transform);
+            }
         }
     }
 

@@ -66,12 +66,21 @@ public class PlayerAttack : MonoBehaviour
     {
         if (bulletPrefab == null || target == null) return;
 
-        // Khởi tạo viên đạn tại vị trí Player
-        GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+        // Khởi tạo viên đạn từ Object Pool (thay thế Instantiate)
+        GameObject bullet = ObjectPool.Instance != null
+            ? ObjectPool.Instance.Get(bulletPrefab, transform.position, Quaternion.identity)
+            : Instantiate(bulletPrefab, transform.position, Quaternion.identity);
         if (bullet == null) return;
 
         // Tính hướng bay từ người chơi tới mục tiêu
         Vector2 shootDirection = (target.position - transform.position).normalized;
+
+        // Truyền hướng bay trực tiếp cho BulletLogic
+        BulletLogic bl = bullet.GetComponent<BulletLogic>();
+        if (bl != null)
+        {
+            bl.SetDirection(shootDirection);
+        }
 
         // Gắn vận tốc cho đạn nếu có Rigidbody2D
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
@@ -80,7 +89,6 @@ public class PlayerAttack : MonoBehaviour
             rb.linearVelocity = shootDirection * 10f;
         }
 
-        // Tự động hủy viên đạn sau 2 giây để tránh tràn bộ nhớ
-        Destroy(bullet, 2f);
+        // BulletLogic tự quản lý thời gian sống và trả về pool, không cần Destroy thủ công
     }
 }

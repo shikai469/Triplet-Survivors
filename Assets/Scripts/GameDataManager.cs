@@ -2,6 +2,16 @@ using UnityEngine;
 
 public static class GameDataManager
 {
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void InitializeMobileSettings()
+    {
+        // Khóa 60 FPS mượt mà cho mobile, tắt VSync để không bị giới hạn 30 FPS trên các màn hình tần số thấp
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
+        // Giữ màn hình luôn sáng, không bị sleep/dim khi đang chơi game
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
+    }
+
     private const string TOTAL_GOLD_KEY = "Player_TotalGold";
     private const string SELECTED_DIFFICULTY_KEY = "Player_SelectedDifficulty";
 
