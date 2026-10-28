@@ -62,6 +62,20 @@ public class PlayerHealth : MonoBehaviour
 
         // Công thức chuẩn: Max(1, Damage - Armor)
         int actualDamage = Mathf.Max(1, incomingDamage - playerArmor);
+
+        // Kỹ năng 7: Giáp Hộ Thể (Energy Shield) đỡ sát thương trước
+        EnergyShieldSkill shield = GetComponent<EnergyShieldSkill>();
+        if (shield != null && shield.enabled)
+        {
+            actualDamage = shield.AbsorbDamage(actualDamage);
+        }
+
+        if (actualDamage <= 0)
+        {
+            // Giáp ảo đã đỡ hoàn toàn đòn đánh
+            return;
+        }
+
         currentHealth -= actualDamage;
 
         UpdateHealthUI();

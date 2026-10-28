@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
+  m_Name: GrenadeTossCard
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
+  icon: {fileID: 0}
+  title: "N\xE9m L\u1EF1u \u0110\u1EA1n"
+  description: "Theo chu k\u1EF3 t\u1EF1 \u0111\u1ED9ng n\xE9m ra qu\u1EA3 l\u1EF1u
+    \u0111\u1EA1n g\xE2y n\u1ED5 di\u1EC7n r\u1ED9ng (AOE) ti\xEAu di\u1EC7t \u0111\xE1m
+    \u0111\xF4ng qu\xE1i."
+  maxLevel: 3
+  upgradeType: 10
+  levelDescriptions:
+  - "N\xE9m l\u1EF1u \u0111\u1EA1n m\u1ED7i 5.0s, n\u1ED5 di\u1EC7n r\u1ED9ng"
+  - "R\xFAt ng\u1EAFn th\u1EDDi gian ch\u1EDD c\xF2n 3.5s"
+  - "N\xE9m d\u1ED3n d\u1EADp m\u1ED7i 2.0s qu\xE9t s\u1EA1ch qu\xE1i"

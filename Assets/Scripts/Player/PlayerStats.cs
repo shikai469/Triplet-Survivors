@@ -139,6 +139,12 @@ public class PlayerStats : MonoBehaviour
     {
         killCount++;
         UpdateUI();
+
+        // Kích hoạt tích lũy điểm Nộ cho cơ chế Xả Chiêu (Overdrive)
+        if (OverdriveManager.Instance != null)
+        {
+            OverdriveManager.Instance.OnEnemyKilled();
+        }
     }
 
     public void UpdateUI()

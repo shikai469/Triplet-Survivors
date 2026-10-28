@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
+  m_Name: SeagullAllyCard
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
+  icon: {fileID: 0}
+  title: "H\u1EA3i \xC2u Tr\u1EE3 Chi\u1EBFn"
+  description: "Tri\u1EC7u h\u1ED3i ch\xFA chim h\u1EA3i \xE2u bay k\xE8 k\xE8 b\xEAn
+    c\u1EA1nh, t\u1EF1 \u0111\u1ED9ng nh\u1EA3 \u0111\u1EA1n h\u1EA1t h\u01B0\u1EDBng
+    d\u01B0\u01A1ng v\u1EC1 ph\xEDa qu\xE1i."
+  maxLevel: 3
+  upgradeType: 9
+  levelDescriptions:
+  - "H\u1EA3i \xE2u tr\u1EE3 chi\u1EBFn, t\u1EA7m b\u1EAFn 5m"
+  - "T\u0103ng t\u1EA7m b\u1EAFn l\xEAn 8m, nh\u1EA3 \u0111\u1EA1n nhanh h\u01A1n"
+  - "T\u1EA7m b\u1EAFn t\u1ED1i \u0111a 12m, bao qu\xE1t to\xE0n tr\u1EADn"

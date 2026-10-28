@@ -1047,9 +1047,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeManager
   allUpgrades:
-  - {fileID: 11400000, guid: 1264d49ffe2caca4393c0b6730db0217, type: 2}
-  - {fileID: 11400000, guid: f8ba13bdf4691a34b8e896db60950d86, type: 2}
+  - {fileID: 11400000, guid: 91076c54c4bdfd24c91ff56bd57f67fe, type: 2}
+  - {fileID: 11400000, guid: 30f2c8f5b5bac3547a30dd432271299c, type: 2}
+  - {fileID: 11400000, guid: 2bb28ffedd0b3a24b98b6ef466db5c93, type: 2}
+  - {fileID: 11400000, guid: f785614984d6ba143b7ff15522c4c3c3, type: 2}
+  - {fileID: 11400000, guid: fe84d3c3ebc5ea8469f598a0bfb67790, type: 2}
   - {fileID: 11400000, guid: 91554623777ef9b4a984b348e5ace19c, type: 2}
+  - {fileID: 11400000, guid: adbbd1b4e6433394482847279bde8b10, type: 2}
+  - {fileID: 11400000, guid: 16324403887c8c24b87bf37f1adebf63, type: 2}
+  - {fileID: 11400000, guid: f8ba13bdf4691a34b8e896db60950d86, type: 2}
+  - {fileID: 11400000, guid: efca42559b0ad6746aa3819dfe79f968, type: 2}
+  - {fileID: 11400000, guid: 699b4ec159d3e2e4ab3d1433822aa13e, type: 2}
+  - {fileID: 11400000, guid: 0da767e47e6aa814cab8980b7767a119, type: 2}
+  - {fileID: 11400000, guid: 6922af33c2da0214092fafd7222190e8, type: 2}
+  - {fileID: 11400000, guid: 1264d49ffe2caca4393c0b6730db0217, type: 2}
   levelUpPanel: {fileID: 1992792174}
   upgradeCards:
   - {fileID: 2037739520}
@@ -1113,7 +1124,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 95, y: -1133.219}
+  m_AnchoredPosition: {x: 95, y: -1133.7375}
   m_SizeDelta: {x: 900, y: 180}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &261670015
@@ -6259,6 +6270,10 @@ MonoBehaviour:
   bulletPrefab: {fileID: 2420174017258045355, guid: f0fb81332bc75cb4087b48ea15c62656, type: 3}
   attackRange: 3
   fireRate: 1
+  damageUpLevel: 0
+  multishotLevel: 0
+  burstFireLevel: 0
+  isOverdriveActive: 0
 --- !u!114 &1670195643
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6743,7 +6758,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 95, y: -903.21906}
+  m_AnchoredPosition: {x: 95, y: -903.7375}
   m_SizeDelta: {x: 900, y: 180}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1760087696
@@ -7416,7 +7431,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 545, y: -1313.219}
+  m_AnchoredPosition: {x: 545, y: -1313.7375}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1890474502
@@ -8095,7 +8110,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 95, y: -673.21906}
+  m_AnchoredPosition: {x: 95, y: -673.7375}
   m_SizeDelta: {x: 900, y: 180}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &2037739516

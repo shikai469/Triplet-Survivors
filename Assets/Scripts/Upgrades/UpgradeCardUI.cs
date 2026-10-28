@@ -13,7 +13,19 @@ public class UpgradeCardUI : MonoBehaviour
     // Hàm nhận dữ liệu hiển thị từ bộ bốc thăm kỹ năng
     public void SetCardData(Sprite icon, string name, string desc, System.Action onClickAction)
     {
-        if (skillIcon != null) skillIcon.sprite = icon;
+        if (skillIcon != null)
+        {
+            if (icon != null)
+            {
+                skillIcon.sprite = icon;
+                skillIcon.enabled = true;
+            }
+            else
+            {
+                skillIcon.enabled = false;
+            }
+        }
+
         if (skillName != null) skillName.text = name;
         if (skillDescription != null) skillDescription.text = desc;
 

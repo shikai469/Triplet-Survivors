@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
+  m_Name: MultishotCard
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
+  icon: {fileID: 0}
+  title: "\u0110\u1EA1n T\xF5e (Multishot)"
+  description: "N\xE2ng c\u1EA5p s\xFAng l\u1EE5c b\u1EAFn t\u1ECFa ra nhi\u1EC1u
+    h\u01B0\u1EDBng. T\u1ED1i \u0111a \u1EDF c\u1EA5p 5 s\u1EBD b\u1EAFn t\xF5e 3
+    vi\xEAn. (\u0110\u1ED9c quy\u1EC1n nh\xE1nh A)"
+  maxLevel: 5
+  upgradeType: 6
+  levelDescriptions:
+  - "B\u1EAFn t\xF5e 2 vi\xEAn g\xF3c h\u1EB9p"
+  - "B\u1EAFn t\xF5e 2 vi\xEAn chu\u1EA9n x\xE1c"
+  - "B\u1EAFn t\xF5e 3 vi\xEAn h\xECnh n\xF3n"
+  - "B\u1EAFn t\xF5e 3 vi\xEAn g\xF3c r\u1ED9ng"
+  - "B\u1EAFn t\xF5e 3 vi\xEAn uy l\u1EF1c t\u1ED1i \u0111a"
