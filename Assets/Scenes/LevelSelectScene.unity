@@ -257,6 +257,8 @@ MonoBehaviour:
   autoSyncSavedRecords: 1
   levelName: "B\xECnh Th\u01B0\u1EDDng"
   mapPreviewImage: {fileID: 0}
+  inGameBackgroundSprite: {fileID: 0}
+  inGameBackgroundMaterial: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
   bossTime: 07:00
   clearCount: 0
@@ -629,6 +631,8 @@ MonoBehaviour:
   autoSyncSavedRecords: 1
   levelName: "Kh\xF3"
   mapPreviewImage: {fileID: 0}
+  inGameBackgroundSprite: {fileID: 0}
+  inGameBackgroundMaterial: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
   bossTime: 09:00
   clearCount: 0
@@ -772,6 +776,8 @@ MonoBehaviour:
   autoSyncSavedRecords: 1
   levelName: "D\u1EC5"
   mapPreviewImage: {fileID: 0}
+  inGameBackgroundSprite: {fileID: 0}
+  inGameBackgroundMaterial: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
   bossTime: 05:00
   clearCount: 0
@@ -1347,6 +1353,8 @@ MonoBehaviour:
   autoSyncSavedRecords: 1
   levelName: "V\xF4 T\u1EADn"
   mapPreviewImage: {fileID: 0}
+  inGameBackgroundSprite: {fileID: 0}
+  inGameBackgroundMaterial: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
   bossTime: --:--
   clearCount: 0
@@ -2389,6 +2397,13 @@ MonoBehaviour:
   bgMain: {fileID: 1139541167}
   bgTransition: {fileID: 1334397073}
   fadeSpeed: 2
+  mapPreviewSprites:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  levelDetailPanelBg: {fileID: 0}
+  detailPanelBgColor: {r: 0.04, g: 0.06, b: 0.12, a: 0.78}
   txtLevelName: {fileID: 69328874}
   txtDetail: {fileID: 1584662838}
   txtBossTime: {fileID: 1426440389}
@@ -2397,6 +2412,9 @@ MonoBehaviour:
   txtSurvivalTime: {fileID: 624282096}
   btnBack: {fileID: 1978244262}
   btnPlay: {fileID: 512806317}
+  pathRenderer: {fileID: 0}
+  selectedNodeOffsetX: -60
+  slideAnimDuration: 0.25
   defaultSelectedNode: {fileID: 0}
 --- !u!4 &1384652024
 Transform:

@@ -123,6 +123,12 @@ public class PowerUpShopManager : MonoBehaviour
 
         foreach (var item in upgradeItems)
         {
+            // Tự động lấy icon từ ProceduralSkillAssets nếu chưa có
+            if (item.icon == null)
+            {
+                item.icon = ProceduralSkillAssets.GetSkillIconByKey(item.upgradeKey);
+            }
+
             GameObject slotObj = Instantiate(slotPrefab, contentGrid);
             slotObj.name = $"Slot_{item.upgradeKey}";
 
@@ -142,7 +148,9 @@ public class PowerUpShopManager : MonoBehaviour
         currentSelectedItem = item;
         if (bottomSheet != null) bottomSheet.SetActive(true);
 
-        if (detailIcon != null) detailIcon.sprite = item.icon;
+        // Lấy icon: ưu tiên icon gán sẵn, fallback sang Procedural
+        Sprite iconToShow = item.icon ?? ProceduralSkillAssets.GetSkillIconByKey(item.upgradeKey);
+        if (detailIcon != null) detailIcon.sprite = iconToShow;
         if (detailName != null) detailName.text = item.displayName;
 
         RefreshDetailPanel();
