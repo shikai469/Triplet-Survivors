@@ -3,10 +3,11 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Vẽ đường nối dạng chấm/nét đứt kiểu Candy Crush giữa các nút Level trong LevelPathContainer.
+/// Vẽ đường nối dạng Candy Crush thẳng giữa các nút Level trong LevelPathContainer khi thu gọn (Ảnh 2).
 /// • Không yêu cầu Canvas riêng — tự tìm Canvas cha gần nhất.
 /// • Tự động tìm 4 nút con (Easy/Normal/Hard/Endless) trong transform nếu levelNodes chưa gán.
 /// • Tự động rebuild khi vị trí node thay đổi (ví dụ: slide animation).
+/// • Vẽ dải đường gạch kem viền đá + chấm sáng nhấp nháy đặc trưng Candy Crush nối thẳng các nút.
 /// Gắn script này vào GameObject LevelPathContainer.
 /// </summary>
 public class LevelPathRenderer : MonoBehaviour
@@ -15,37 +16,54 @@ public class LevelPathRenderer : MonoBehaviour
     [Tooltip("Nếu để trống, script tự tìm tất cả Button con theo thứ tự sibling trong LevelPathContainer.")]
     public List<RectTransform> levelNodes = new List<RectTransform>();
 
-    [Header("Cài đặt đường nối")]
+    [Header("Hiển thị đường nối thẳng Candy Crush khi thu gọn (Ảnh 2)")]
+    [Tooltip("Chỉ vẽ đường nối khi các nút đã thu gọn sang bên trái (x <= -200) hoặc khi LevelDetailPanel mở")]
+    public bool showOnlyWhenRetracted = true;
+
+    [Tooltip("Ngưỡng tọa độ X được coi là đã thu gọn")]
+    public float retractedThresholdX = -200f;
+
+    [Header("Cài đặt dải đường Candy Crush")]
+    [Tooltip("Vẽ mặt đường gạch màu kem Candy Crush bên dưới các chấm")]
+    public bool renderRoadSurface = true;
+    public float roadBorderWidth = 36f;
+    public float roadSurfaceWidth = 26f;
+    public Color roadBorderColor = new Color(0.68f, 0.48f, 0.25f, 1f);
+    public Color roadSurfaceColor = new Color(0.98f, 0.92f, 0.74f, 1f);
+    public Color roadHighlightColor = new Color(1f, 0.98f, 0.88f, 0.75f);
+
+    [Header("Cài đặt chấm tròn Candy Crush")]
     [Tooltip("Kích thước mỗi chấm (pixels)")]
-    public float dotSize = 12f;
+    public float dotSize = 14f;
 
     [Tooltip("Khoảng cách giữa tâm 2 chấm liên tiếp (pixels)")]
-    public float dotSpacing = 24f;
+    public float dotSpacing = 28f;
 
     [Tooltip("Màu chấm chính")]
-    public Color dotColor = new Color(1f, 0.90f, 0.40f, 0.90f);
+    public Color dotColor = new Color(1f, 0.92f, 0.45f, 0.95f);
 
     [Tooltip("Màu viền ngoài chấm")]
-    public Color dotBorderColor = new Color(0.55f, 0.40f, 0.05f, 0.65f);
+    public Color dotBorderColor = new Color(0.55f, 0.38f, 0.12f, 0.75f);
 
     [Header("Animation nhấp nháy")]
     public bool animateDots = true;
-    public float animSpeed  = 1.4f;
+    public float animSpeed  = 1.5f;
 
     // ── Internal ──────────────────────────────────────────────────────────────
-    private readonly List<Image>   dotImages      = new List<Image>();
-    private readonly List<Vector3> cachedPositions = new List<Vector3>();
+    private readonly List<GameObject> spawnedRoadObjects = new List<GameObject>();
+    private readonly List<Image>      dotImages          = new List<Image>();
+    private readonly List<Vector3>    cachedPositions    = new List<Vector3>();
 
     private Canvas        parentCanvas;
     private RectTransform containerRect;
     private float         animOffset = 0f;
+    private bool          forceShowStraightRoad = false;
 
     // ── Unity lifecycle ───────────────────────────────────────────────────────
 
     void Awake()
     {
         containerRect = GetComponent<RectTransform>();
-        // Tìm Canvas cha gần nhất (không cần Canvas trực tiếp trên object này)
         parentCanvas = GetComponentInParent<Canvas>();
     }
 
@@ -67,11 +85,10 @@ public class LevelPathRenderer : MonoBehaviour
             CacheNodePositions();
         }
 
-        if (animateDots) AnimateDots();
+        if (animateDots && dotImages.Count > 0) AnimateDots();
     }
 
 #if UNITY_EDITOR
-    // Trong Editor: tự nạp node ngay khi giá trị thay đổi để xem trước
     void OnValidate()
     {
         if (!Application.isPlaying) return;
@@ -80,6 +97,14 @@ public class LevelPathRenderer : MonoBehaviour
 #endif
 
     // ── Public API ────────────────────────────────────────────────────────────
+
+    /// <summary>Bật/tắt chế độ hiển thị đường nối thẳng từ LevelSelectManager.</summary>
+    public void SetStraightRoadVisible(bool visible)
+    {
+        forceShowStraightRoad = visible;
+        RebuildPath();
+        CacheNodePositions();
+    }
 
     /// <summary>Gọi từ LevelSelectManager sau khi slide animation kết thúc.</summary>
     public void ForceRebuild()
@@ -91,47 +116,30 @@ public class LevelPathRenderer : MonoBehaviour
 
     // ── Auto-find nodes ───────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Nếu levelNodes chưa đủ 4 phần tử hợp lệ, tự tìm tất cả Button con
-    /// (hoặc toàn bộ con có RectTransform) sắp xếp theo thứ tự sibling.
-    /// </summary>
     private void AutoFindNodes()
     {
-        // Đếm node hợp lệ hiện tại
         int validCount = 0;
         foreach (var n in levelNodes)
             if (n != null) validCount++;
 
-        if (validCount >= 2) return; // Đã đủ, không tự fill
+        if (validCount >= 2) return;
 
         levelNodes.Clear();
-
-        // Duyệt các con trực tiếp theo thứ tự sibling
         foreach (Transform child in transform)
         {
-            // Bỏ qua các chấm dot đã sinh (tên bắt đầu bằng "Dot_")
-            if (child.name.StartsWith("Dot_")) continue;
+            if (child.name.StartsWith("Road_") || child.name.StartsWith("Dot_")) continue;
 
             RectTransform rt = child.GetComponent<RectTransform>();
             if (rt != null)
                 levelNodes.Add(rt);
         }
-
-        if (levelNodes.Count < 2)
-            Debug.LogWarning("[LevelPathRenderer] Tìm được ít hơn 2 node con. Hãy gán thủ công vào levelNodes.", this);
-        else
-            Debug.Log($"[LevelPathRenderer] Tự động tìm được {levelNodes.Count} node(s): " +
-                      string.Join(", ", levelNodes.ConvertAll(n => n.name)));
     }
 
     // ── Path rebuild ──────────────────────────────────────────────────────────
 
     private void RebuildPath()
     {
-        // Xoá chấm cũ
-        foreach (var dot in dotImages)
-            if (dot != null) Destroy(dot.gameObject);
-        dotImages.Clear();
+        ClearSpawnedElements();
 
         if (levelNodes == null || levelNodes.Count < 2) return;
         if (parentCanvas == null)
@@ -140,14 +148,79 @@ public class LevelPathRenderer : MonoBehaviour
             if (parentCanvas == null) return;
         }
 
+        // Kiểm tra xem các nút đã thu gọn chưa (nếu bật showOnlyWhenRetracted)
+        if (showOnlyWhenRetracted && !forceShowStraightRoad && !AreNodesRetracted())
+        {
+            return; // Đang ở màn hình chính (Idle S-curve của background), không vẽ đường đè lên
+        }
+
         for (int i = 0; i < levelNodes.Count - 1; i++)
         {
             if (levelNodes[i] == null || levelNodes[i + 1] == null) continue;
-            DrawDottedLine(GetLocalCenter(levelNodes[i]), GetLocalCenter(levelNodes[i + 1]));
+            Vector2 from = GetLocalCenter(levelNodes[i]);
+            Vector2 to   = GetLocalCenter(levelNodes[i + 1]);
+
+            // 1. Vẽ dải đường Candy Crush (Bóng đổ + Viền gạch + Mặt đường + Vệt sáng)
+            if (renderRoadSurface)
+            {
+                SpawnRoadSegment(from, to, roadBorderWidth + 10f, new Color(0f, 0f, 0f, 0.28f), "Road_Shadow");
+                SpawnRoadSegment(from, to, roadBorderWidth, roadBorderColor, "Road_Border");
+                SpawnRoadSegment(from, to, roadSurfaceWidth, roadSurfaceColor, "Road_Surface");
+                SpawnRoadSegment(from, to, roadSurfaceWidth * 0.5f, roadHighlightColor, "Road_Highlight");
+            }
+
+            // 2. Vẽ chuỗi chấm tròn nhấp nháy Candy Crush dọc theo đường
+            DrawDottedLine(from, to);
         }
     }
 
-    // Chuyển vị trí world-center của node về local space của container
+    private bool AreNodesRetracted()
+    {
+        if (levelNodes == null || levelNodes.Count == 0) return false;
+        foreach (var node in levelNodes)
+        {
+            if (node != null && node.anchoredPosition.x <= retractedThresholdX)
+                return true;
+        }
+        return false;
+    }
+
+    private void ClearSpawnedElements()
+    {
+        foreach (var obj in spawnedRoadObjects)
+            if (obj != null) Destroy(obj);
+        spawnedRoadObjects.Clear();
+
+        foreach (var dot in dotImages)
+            if (dot != null) Destroy(dot.gameObject);
+        dotImages.Clear();
+    }
+
+    private void SpawnRoadSegment(Vector2 from, Vector2 to, float width, Color color, string name)
+    {
+        Vector2 dir = to - from;
+        float dist = dir.magnitude;
+        if (dist < 1f) return;
+
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(transform, false);
+        go.transform.SetSiblingIndex(0); // Luôn nằm dưới cùng, không che nút
+
+        var rt = go.GetComponent<RectTransform>();
+        rt.sizeDelta        = new Vector2(width, dist);
+        rt.pivot            = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = (from + to) * 0.5f;
+
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        rt.localRotation = Quaternion.Euler(0f, 0f, angle - 90f);
+
+        var img = go.GetComponent<Image>();
+        img.color         = color;
+        img.raycastTarget = false;
+
+        spawnedRoadObjects.Add(go);
+    }
+
     private Vector2 GetLocalCenter(RectTransform node)
     {
         Vector3[] corners = new Vector3[4];
@@ -176,7 +249,7 @@ public class LevelPathRenderer : MonoBehaviour
             float   t   = i / (float)count;
             Vector2 pos = Vector2.Lerp(from, to, t);
 
-            // Viền ngoài
+            // Viền ngoài chấm
             SpawnDot(pos, dotSize + 5f, dotBorderColor);
             // Chấm chính
             SpawnDot(pos, dotSize, dotColor);
@@ -187,7 +260,7 @@ public class LevelPathRenderer : MonoBehaviour
     {
         var go = new GameObject($"Dot_{dotImages.Count}", typeof(RectTransform), typeof(Image));
         go.transform.SetParent(transform, false);
-        go.transform.SetSiblingIndex(0); // luôn nằm dưới cùng, không che nút
+        go.transform.SetSiblingIndex(0);
 
         var rt = go.GetComponent<RectTransform>();
         rt.anchoredPosition = localPos;
@@ -196,7 +269,7 @@ public class LevelPathRenderer : MonoBehaviour
         var img = go.GetComponent<Image>();
         img.sprite          = GetCircleSprite();
         img.color           = color;
-        img.raycastTarget   = false; // không chặn click
+        img.raycastTarget   = false;
 
         dotImages.Add(img);
     }
@@ -205,7 +278,6 @@ public class LevelPathRenderer : MonoBehaviour
 
     private void AnimateDots()
     {
-        // Mỗi vị trí có 2 ảnh: [border, main] → chỉ animate chấm chính (index lẻ)
         for (int i = 1; i < dotImages.Count; i += 2)
         {
             if (dotImages[i] == null) continue;

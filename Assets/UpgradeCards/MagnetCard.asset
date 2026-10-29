@@ -13,7 +13,13 @@ MonoBehaviour:
   m_Name: MagnetCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
   icon: {fileID: 0}
-  title: "T\u1EA7m H\xFAt T\u0103ng"
-  description: 
+  title: "T\u1EA7m H\xFAt"
+  description: "M\u1EDF r\u1ED9ng b\xE1n k\xEDnh t\u1EF1 \u0111\u1ED9ng h\xFAt v\xE0ng v\xE0 ng\u1ECDc kinh nghi\u1EC7m r\u01A1i tr\xEAn chi\u1EBFn tr\u01B0\u1EDDng."
   maxLevel: 5
   upgradeType: 1
+  levelDescriptions:
+  - "+30% b\xE1n k\xEDnh h\xFAt v\u1EADt ph\u1EA9m"
+  - "+60% b\xE1n k\xEDnh h\xFAt v\u1EADt ph\u1EA9m"
+  - "+90% b\xE1n k\xEDnh h\xFAt v\u1EADt ph\u1EA9m"
+  - "+120% b\xE1n k\xEDnh h\xFAt v\u1EADt ph\u1EA9m"
+  - "H\xFAt ng\u1ECDc v\xE0 v\xE0ng to\xE0n m\xE0n h\xECnh"

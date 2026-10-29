@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BurstFireCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
   icon: {fileID: 0}
-  title: "\u0110\u1EA1n Li\xEAn T\u1EE5c (Burst Fire)"
+  title: "\u0110\u1EA1n Li\xEAn T\u1EE5c"
   description: "N\xE2ng c\u1EA5p s\xFAng l\u1EE5c b\u1EAFn m\u1ED9t chu\u1ED7i \u0111\u1EA1n
     li\xEAn ti\u1EBFp tr\xEAn c\xF9ng \u0111\u01B0\u1EDDng th\u1EB3ng. T\u1ED1i \u0111a
     3 vi\xEAn. (\u0110\u1ED9c quy\u1EC1n nh\xE1nh B)"

@@ -52,14 +52,14 @@ public class UpgradeManager : MonoBehaviour
         // 1. Tạo 2 thẻ fallback mặc định
         fallbackCoinCard = ScriptableObject.CreateInstance<UpgradeData>();
         fallbackCoinCard.upgradeType = UpgradeData.UpgradeType.SelectItem_Coin;
-        fallbackCoinCard.title = "Thưởng Vàng (SelectItem_Coin)";
+        fallbackCoinCard.title = "Thưởng Vàng";
         fallbackCoinCard.description = "Nhận ngay 10 ~ 25 Vàng trực tiếp vào túi đồ trong trận.";
         fallbackCoinCard.maxLevel = int.MaxValue;
         fallbackCoinCard.icon = ProceduralSkillAssets.GetSkillIcon(UpgradeData.UpgradeType.SelectItem_Coin);
 
         fallbackHealCard = ScriptableObject.CreateInstance<UpgradeData>();
         fallbackHealCard.upgradeType = UpgradeData.UpgradeType.SelectItem_HealPack;
-        fallbackHealCard.title = "Túi Cứu Thương (SelectItem_HealPack)";
+        fallbackHealCard.title = "Túi Cứu Thương";
         fallbackHealCard.description = "Hồi phục ngay 100 HP (hoặc 30% Max HP) cho nhân vật.";
         fallbackHealCard.maxLevel = int.MaxValue;
         fallbackHealCard.icon = ProceduralSkillAssets.GetSkillIcon(UpgradeData.UpgradeType.SelectItem_HealPack);
@@ -78,16 +78,19 @@ public class UpgradeManager : MonoBehaviour
             }
         }
 
-        // Tự động bổ sung các kỹ năng còn thiếu
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.DamageUp, "Tăng Sát Thương", "Tăng trực tiếp sát thương đạn súng lục mặc định (+20% mỗi cấp).", 5);
+        // Tự động bổ sung các kỹ năng còn thiếu (tên ngắn gọn, không ngoặc)
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.DamageUp, "Tăng Sát Thương", "Tăng trực tiếp sát thương đạn súng lục (+20% mỗi cấp).", 5);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.PiercingShot, "Đạn Xuyên Thấu", "Bắn ra viên đạn sniper cực mạnh bay xuyên thấu qua nhiều quái trên đường thẳng.", 3);
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.Multishot, "Đạn Tõe (Multishot)", "Nâng cấp súng lục bắn tỏa ra nhiều hướng. Tối đa ở cấp 5 bắn tõe 3 viên.", 5);
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.BurstFire, "Đạn Liên Tục (Burst Fire)", "Nâng cấp súng lục bắn một chuỗi đạn liên tiếp trên đường thẳng. Tối đa 3 viên liên tục.", 5);
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.OrbitSwords, "Kiếm Bay (Orbit Swords)", "Tạo kiếm xoay quanh nhân vật gây sát thương cho quái chạm vào. Tối đa 3 kiếm.", 3);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.Multishot, "Đạn Tỏa", "Nâng cấp súng lục bắn tỏa ra nhiều hướng. Tối đa ở cấp 5 bắn tỏa 3 viên.", 5);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.BurstFire, "Đạn Bắn Loạt", "Nâng cấp súng lục bắn một chuỗi đạn liên tiếp trên đường thẳng. Tối đa 3 viên liên tục.", 5);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.OrbitSwords, "Kiếm Bay", "Tạo kiếm xoay quanh nhân vật gây sát thương cho quái chạm vào. Tối đa 3 kiếm.", 3);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.SeagullAlly, "Hải Âu Trợ Chiến", "Triệu hồi chú chim hải âu bay kè kè bên cạnh, tự động nhả đạn hạt hướng dương về phía quái.", 3);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.GrenadeToss, "Ném Lựu Đạn", "Tự động ném quả lựu đạn gây nổ diện rộng (AOE) tiêu diệt đám đông quái.", 3);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.EnergyShield, "Giáp Hộ Thể", "Tạo lớp giáp ảo bảo vệ đỡ đòn. Tự động hồi đầy lại sau 5 giây không bị đánh.", 3);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.BouncingBoomerang, "Boomerang Dội Tường", "Ném Boomerang dội ngược khi chạm tường rồi quay về người chơi. Tối đa 3 cái.", 3);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.MoveSpeed, "Tăng Tốc Chạy", "Tăng 15% tốc độ di chuyển giúp né quái linh hoạt hơn.", 5);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.FireRate, "Tốc Độ Bắn", "Tăng 20% tốc độ bắn đạn súng lục.", 5);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.MagnetRange, "Tầm Hút", "Mở rộng bán kính tự động hút vàng và ngọc kinh nghiệm.", 5);
     }
 
     private void AddDefaultCardIfMissing(HashSet<UpgradeData.UpgradeType> existingTypes, UpgradeData.UpgradeType type, string title, string desc, int maxLv)
@@ -209,15 +212,15 @@ public class UpgradeManager : MonoBehaviour
                 upgradeCards[i].gameObject.SetActive(true);
                 UpgradeData selectedData = displayCards[i];
 
-                // Xác định tên hiển thị kèm cấp độ
+                // Xác định tên hiển thị kèm cấp độ: dạng chuẩn "Tên skill lv1", bỏ sạch ngoặc
                 int curLv = controller != null ? controller.GetSkillLevel(selectedData.upgradeType) : 0;
-                int maxLv = controller != null ? controller.GetMaxLevel(selectedData.upgradeType) : selectedData.maxLevel;
+                string cleanTitle = CleanSkillTitle(selectedData.title);
 
-                string displayTitle = selectedData.title;
+                string displayTitle = cleanTitle;
                 if (selectedData.upgradeType != UpgradeData.UpgradeType.SelectItem_Coin &&
                     selectedData.upgradeType != UpgradeData.UpgradeType.SelectItem_HealPack)
                 {
-                    displayTitle = $"{selectedData.title} [Cấp {curLv + 1}/{maxLv}]";
+                    displayTitle = $"{cleanTitle} lv{curLv + 1}";
                 }
 
                 Sprite displayIcon = selectedData.icon != null ? selectedData.icon : ProceduralSkillAssets.GetSkillIcon(selectedData.upgradeType);
@@ -297,5 +300,16 @@ public class UpgradeManager : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Làm sạch tên kỹ năng: loại bỏ mọi chú thích trong ngoặc đơn (...) và ngoặc vuông [...]
+    /// Ví dụ: "Kiếm Bay (Orbit Swords)" -> "Kiếm Bay"
+    /// </summary>
+    public static string CleanSkillTitle(string rawTitle)
+    {
+        if (string.IsNullOrEmpty(rawTitle)) return "";
+        string clean = System.Text.RegularExpressions.Regex.Replace(rawTitle, @"\s*[\(\[][^\)\]]*[\)\]]", "").Trim();
+        return clean;
     }
 }

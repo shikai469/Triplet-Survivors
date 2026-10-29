@@ -122,7 +122,7 @@ public static class MonsterSetupTool
 
         importer.textureType = TextureImporterType.Sprite;
         importer.spriteImportMode = SpriteImportMode.Multiple;
-        importer.spritePixelsToUnits = 100;
+        importer.spritePixelsPerUnit = 100;
         importer.filterMode = FilterMode.Point; // Pixel Art sắc nét
         importer.textureCompression = TextureImporterCompression.Uncompressed;
 
@@ -141,7 +141,9 @@ public static class MonsterSetupTool
             metaList.Add(meta);
         }
 
+#pragma warning disable CS0618
         importer.spritesheet = metaList.ToArray();
+#pragma warning restore CS0618
         EditorUtility.SetDirty(importer);
         importer.SaveAndReimport();
     }

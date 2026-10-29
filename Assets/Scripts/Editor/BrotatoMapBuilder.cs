@@ -84,16 +84,14 @@ public static class BrotatoMapBuilder
         }
 
         // Tìm thêm bất kỳ InfiniteBackground nào khác trong scene (nếu có)
-        InfiniteBackground[] oldBgs = Object.FindObjectsByType<InfiniteBackground>(FindObjectsSortMode.None);
+        InfiniteBackground[] oldBgs = Object.FindObjectsByType<InfiniteBackground>();
         foreach (var bg in oldBgs)
         {
             Undo.DestroyObjectImmediate(bg.gameObject);
         }
 
         // 4. Xóa đối tượng BrotatoArenaMap cũ nếu đã tồn tại để cập nhật bản mới nhất
-        BrotatoArena oldArena = Object.FindObjectsByType<BrotatoArena>(FindObjectsSortMode.None).Length > 0
-            ? Object.FindObjectsByType<BrotatoArena>(FindObjectsSortMode.None)[0]
-            : null;
+        BrotatoArena oldArena = Object.FindAnyObjectByType<BrotatoArena>();
 
         if (oldArena != null)
         {

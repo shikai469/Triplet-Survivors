@@ -26,7 +26,11 @@ public class UpgradeCardUI : MonoBehaviour
             }
         }
 
-        if (skillName != null) skillName.text = name;
+        if (skillName != null)
+        {
+            skillName.text = name;
+            skillName.textWrappingMode = TextWrappingModes.NoWrap; // Đảm bảo tên skill luôn gọn trên 1 dòng
+        }
         if (skillDescription != null) skillDescription.text = desc;
 
         if (selectButton != null)

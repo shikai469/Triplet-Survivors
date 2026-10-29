@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: OrbitSwordsCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
   icon: {fileID: 0}
-  title: "Ki\u1EBFm Bay (Orbit Swords)"
+  title: "Ki\u1EBFm Bay"
   description: "T\u1EA1o ra thanh ki\u1EBFm xoay tr\xF2n quanh ng\u01B0\u1EDDi ch\u01A1i,
     g\xE2y s\xE1t th\u01B0\u01A1ng cho qu\xE1i ch\u1EA1m v\xE0o. T\u1ED1i \u0111a
     3 ki\u1EBFm."

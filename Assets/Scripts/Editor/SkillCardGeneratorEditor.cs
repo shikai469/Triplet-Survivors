@@ -27,15 +27,15 @@ public static class SkillCardGeneratorEditor
             "Thỉnh thoảng bắn ra 1 viên đạn sniper bay xuyên thấu qua nhiều quái trên đường thẳng.", 3,
             new string[] { "Hồi 5.0s, đạn sniper uy lực xuyên quái", "Hồi 3.8s, tăng tốc độ bắn sniper", "Hồi 2.5s, xả đạn sniper dồn dập" });
 
-        CreateOrUpdateCard(folderPath, "MultishotCard", UpgradeData.UpgradeType.Multishot, "Đạn Tõe (Multishot)",
-            "Nâng cấp súng lục bắn tỏa ra nhiều hướng. Tối đa ở cấp 5 sẽ bắn tõe 3 viên. (Độc quyền nhánh A)", 5,
-            new string[] { "Bắn tõe 2 viên góc hẹp", "Bắn tõe 2 viên chuẩn xác", "Bắn tõe 3 viên hình nón", "Bắn tõe 3 viên góc rộng", "Bắn tõe 3 viên uy lực tối đa" });
+        CreateOrUpdateCard(folderPath, "MultishotCard", UpgradeData.UpgradeType.Multishot, "Đạn Tỏa",
+            "Nâng cấp súng lục bắn tỏa ra nhiều hướng hình nón. Tối đa 3 viên. (Độc quyền nhánh A)", 5,
+            new string[] { "Bắn tỏa 2 viên góc hẹp", "Bắn tỏa 2 viên chuẩn xác", "Bắn tỏa 3 viên hình nón", "Bắn tỏa 3 viên góc rộng", "Bắn tỏa 3 viên uy lực tối đa" });
 
-        CreateOrUpdateCard(folderPath, "BurstFireCard", UpgradeData.UpgradeType.BurstFire, "Đạn Liên Tục (Burst Fire)",
-            "Nâng cấp súng lục bắn một chuỗi đạn liên tiếp trên cùng đường thẳng. Tối đa 3 viên. (Độc quyền nhánh B)", 5,
+        CreateOrUpdateCard(folderPath, "BurstFireCard", UpgradeData.UpgradeType.BurstFire, "Đạn Bắn Loạt",
+            "Nâng cấp súng lục bắn chuỗi đạn liên tiếp trên cùng đường thẳng. Tối đa 3 viên. (Độc quyền nhánh B)", 5,
             new string[] { "Bắn liên tiếp chuỗi 2 viên", "Chuỗi 2 viên tốc độ cao", "Bắn liên tiếp chuỗi 3 viên", "Chuỗi 3 viên liên hoàn", "Chuỗi 3 viên uy lực xé gió" });
 
-        CreateOrUpdateCard(folderPath, "OrbitSwordsCard", UpgradeData.UpgradeType.OrbitSwords, "Kiếm Bay (Orbit Swords)",
+        CreateOrUpdateCard(folderPath, "OrbitSwordsCard", UpgradeData.UpgradeType.OrbitSwords, "Kiếm Bay",
             "Tạo ra thanh kiếm xoay tròn quanh người chơi, gây sát thương cho quái chạm vào. Tối đa 3 kiếm.", 3,
             new string[] { "1 thanh kiếm xoay quanh người", "2 thanh kiếm xoay đối xứng 180°", "3 thanh kiếm xoay quanh người như cối xay" });
 
@@ -55,6 +55,18 @@ public static class SkillCardGeneratorEditor
             "Ném Boomerang dội ngược khi đập tường đấu trường rồi quay về người chơi. Tối đa 3 cái.", 3,
             new string[] { "Ném 1 Boomerang dội tường", "Ném 2 Boomerang cùng lúc", "Ném 3 Boomerang càn quét chiến trường" });
 
+        CreateOrUpdateCard(folderPath, "SpeedCard", UpgradeData.UpgradeType.MoveSpeed, "Tăng Tốc Chạy",
+            "Tăng 15% tốc độ di chuyển giúp nhân vật né tránh quái và thu thập tài nguyên linh hoạt hơn.", 5,
+            new string[] { "Tăng 15% tốc độ chạy", "Tăng thêm 15% tốc độ chạy", "Tăng thêm 15% tốc độ chạy", "Tăng thêm 15% tốc độ chạy", "Tối đa tốc độ chạy (+75%)" });
+
+        CreateOrUpdateCard(folderPath, "FireRateCard", UpgradeData.UpgradeType.FireRate, "Tốc Độ Bắn",
+            "Tăng 20% tốc độ xả đạn của súng lục giúp tiêu diệt kẻ địch nhanh chóng.", 5,
+            new string[] { "Tăng 20% tốc độ bắn", "Tăng 40% tốc độ bắn", "Tăng 60% tốc độ bắn", "Tăng 80% tốc độ bắn", "Tối đa tốc độ xả đạn liên tục" });
+
+        CreateOrUpdateCard(folderPath, "MagnetCard", UpgradeData.UpgradeType.MagnetRange, "Tầm Hút",
+            "Mở rộng bán kính tự động hút vàng và ngọc kinh nghiệm rơi trên chiến trường.", 5,
+            new string[] { "+30% bán kính hút vật phẩm", "+60% bán kính hút vật phẩm", "+90% bán kính hút vật phẩm", "+120% bán kính hút vật phẩm", "Hút ngọc và vàng toàn màn hình" });
+
         CreateOrUpdateCard(folderPath, "CoinRewardCard", UpgradeData.UpgradeType.SelectItem_Coin, "Thưởng Vàng",
             "Thưởng ngay 10 ~ 25 Vàng trực tiếp vào túi đồ trong trận.", 999, null);
 
@@ -65,7 +77,7 @@ public static class SkillCardGeneratorEditor
         AssetDatabase.Refresh();
 
         // Tự động gán vào UpgradeManager trong Scene
-        UpgradeManager um = Object.FindFirstObjectByType<UpgradeManager>();
+        UpgradeManager um = Object.FindAnyObjectByType<UpgradeManager>();
         if (um != null)
         {
             Undo.RecordObject(um, "Assign Skill Cards to UpgradeManager");

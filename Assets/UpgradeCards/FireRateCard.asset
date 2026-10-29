@@ -14,6 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
   icon: {fileID: 0}
   title: "T\u1ED1c \u0110\u1ED9 B\u1EAFn"
-  description: 
+  description: "T\u0103ng 20% t\u1ED1c \u0111\u1ED9 x\u1EA3 \u0111\u1EA1n c\u1EE7a s\xFAng l\u1EE5c gi\xFAp ti\xEAu di\u1EC7t k\u1EBB \u0111\u1ECBch nhanh ch\xF3ng."
   maxLevel: 5
   upgradeType: 2
+  levelDescriptions:
+  - "T\u0103ng 20% t\u1ED1c \u0111\u1ED9 b\u1EAFn"
+  - "T\u0103ng 40% t\u1ED1c \u0111\u1ED9 b\u1EAFn"
+  - "T\u0103ng 60% t\u1ED1c \u0111\u1ED9 b\u1EAFn"
+  - "T\u0103ng 80% t\u1ED1c \u0111\u1ED9 b\u1EAFn"
+  - "T\u1ED1i \u0111a t\u1ED1c \u0111\u1ED9 x\u1EA3 \u0111\u1EA1n li\xEAn t\u1EE5c"

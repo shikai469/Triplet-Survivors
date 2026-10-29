@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MultishotCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
   icon: {fileID: 0}
-  title: "\u0110\u1EA1n T\xF5e (Multishot)"
+  title: "\u0110\u1EA1n T\u1ECFa"
   description: "N\xE2ng c\u1EA5p s\xFAng l\u1EE5c b\u1EAFn t\u1ECFa ra nhi\u1EC1u
     h\u01B0\u1EDBng. T\u1ED1i \u0111a \u1EDF c\u1EA5p 5 s\u1EBD b\u1EAFn t\xF5e 3
     vi\xEAn. (\u0110\u1ED9c quy\u1EC1n nh\xE1nh A)"

@@ -47,8 +47,55 @@ public class UpgradeData : ScriptableObject
     {
         if (levelDescriptions != null && levelDescriptions.Length >= nextLevel && nextLevel > 0)
         {
-            return levelDescriptions[nextLevel - 1];
+            string lvlDesc = levelDescriptions[nextLevel - 1];
+            if (!string.IsNullOrWhiteSpace(lvlDesc))
+                return lvlDesc;
         }
-        return description;
+        if (!string.IsNullOrWhiteSpace(description))
+        {
+            return description;
+        }
+        return GetDefaultFallbackDescription(upgradeType);
+    }
+
+    /// <summary>
+    /// Mô tả súc tích, dễ hiểu mặc định cho từng loại kỹ năng (tránh bị trống mô tả)
+    /// </summary>
+    public static string GetDefaultFallbackDescription(UpgradeType type)
+    {
+        switch (type)
+        {
+            case UpgradeType.MoveSpeed:
+                return "Tăng 15% tốc độ di chuyển của nhân vật.";
+            case UpgradeType.DamageUp:
+                return "Tăng 20% sát thương đạn cơ bản.";
+            case UpgradeType.FireRate:
+                return "Tăng 20% tốc độ bắn đạn súng lục.";
+            case UpgradeType.MagnetRange:
+                return "Mở rộng bán kính tự động hút vàng và ngọc EXP.";
+            case UpgradeType.PiercingShot:
+                return "Bắn đạn sniper cực mạnh xuyên qua nhiều quái trên đường thẳng.";
+            case UpgradeType.Multishot:
+                return "Súng lục bắn tỏa nhiều viên theo hình nón.";
+            case UpgradeType.BurstFire:
+                return "Bắn một chuỗi đạn liên tiếp trên cùng đường thẳng.";
+            case UpgradeType.OrbitSwords:
+                return "Tạo kiếm bay xoay tròn bảo vệ nhân vật.";
+            case UpgradeType.SeagullAlly:
+                return "Triệu hồi hải âu bay kèm tự động bắn tỉa quái.";
+            case UpgradeType.GrenadeToss:
+                return "Tự động ném lựu đạn gây nổ diện rộng.";
+            case UpgradeType.EnergyShield:
+                return "Tạo khiên ảo đỡ đòn, tự hồi sau 5s không bị đánh.";
+            case UpgradeType.BouncingBoomerang:
+                return "Ném Boomerang dội tường càn quét chiến trường.";
+            case UpgradeType.SelectItem_Coin:
+                return "Nhận ngay 10 ~ 25 Vàng vào túi đồ.";
+            case UpgradeType.SelectItem_HealPack:
+            case UpgradeType.Heal:
+                return "Hồi phục ngay 100 HP cho nhân vật.";
+            default:
+                return "Nâng cấp chỉ số cho nhân vật.";
+        }
     }
 }
