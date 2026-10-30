@@ -67,7 +67,7 @@ public static class MonsterSetupTool
             xpPrefab: xpPrefab,
             goldPrefab: goldPrefab,
             isBoss: false,
-            scale: 1.0f
+            scale: 1.35f
         );
 
         // 5. Tạo Prefab cho Demon (Quái Tinh Anh)
@@ -85,7 +85,7 @@ public static class MonsterSetupTool
             xpPrefab: xpPrefab,
             goldPrefab: goldPrefab,
             isBoss: false,
-            scale: 1.15f
+            scale: 1.6f
         );
 
         // 6. Tạo Prefab cho Boss Demon (Trùm Cuối Màn Chơi)
@@ -102,13 +102,73 @@ public static class MonsterSetupTool
             xpPrefab: xpPrefab,
             goldPrefab: goldPrefab,
             isBoss: true,
-            scale: 2.0f
+            scale: 2.3f
         );
 
         // 7. Gán các quái mới vào GameplayScene
         UpdateGameplaySceneSpawners(bloodPrefab, demonPrefab, bossDemonPrefab);
 
         Debug.Log("<color=green>[MONSTER SETUP] Đã tạo thành công Prefab Quái Máu (Blood Monster), Ác Quỷ (Demon) và Trùm Ác Quỷ (Boss Demon)! Đã liên kết vào GameplayScene.</color>");
+    }
+
+    [MenuItem("Tools/Setup Fire High Spirit Monster")]
+    public static void SetupFireHighSpirit()
+    {
+        AssetDatabase.Refresh();
+
+        string walkPath = "Assets/MonsterAssets/Characters(100x100 split)/FireHighSpirit/FireHighSpirit_Walk.png";
+        string idlePath = "Assets/MonsterAssets/Characters(100x100 split)/FireHighSpirit/FireHighSpirit_Idle.png";
+        string attackPath = "Assets/MonsterAssets/Characters(100x100 split)/FireHighSpirit/FireHighSpirit_Attack.png";
+        string deadPath = "Assets/MonsterAssets/Characters(100x100 split)/FireHighSpirit/FireHighSpirit_Dead.png";
+
+        SliceSpritesheet(walkPath, 12, 128, 136);
+        SliceSpritesheet(idlePath, 12, 128, 136);
+        SliceSpritesheet(attackPath, 16, 128, 136);
+        SliceSpritesheet(deadPath, 12, 128, 136);
+        AssetDatabase.Refresh();
+
+        var walkSprites = LoadSprites(walkPath);
+        var idleSprites = LoadSprites(idlePath);
+        var walkClip = CreateAnimationClip("FireHighSpirit_Walk", walkSprites, 12f);
+        var idleClip = CreateAnimationClip("FireHighSpirit_Idle", idleSprites, 10f);
+        var controller = CreateMonsterAnimatorController("FireHighSpirit_Controller", walkClip, idleClip);
+
+        GameObject xpPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/XP.prefab");
+        GameObject goldPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Gold.prefab");
+
+        Sprite defaultSprite = walkSprites.Count > 0 ? walkSprites[0] : null;
+        GameObject firePrefab = CreateMonsterPrefab(
+            prefabName: "Enemy-FireHighSpirit",
+            sprite: defaultSprite,
+            controller: controller,
+            colliderRadius: 0.35f,
+            moveSpeed: 1.8f,
+            attackDamage: 10,
+            maxHp: 30f,
+            armor: 0,
+            knockbackRes: 40f,
+            xpPrefab: xpPrefab,
+            goldPrefab: goldPrefab,
+            isBoss: false,
+            scale: 0.65f
+        );
+
+        var activeScene = EditorSceneManager.GetActiveScene();
+        if (activeScene.name != "GameplayScene")
+        {
+            EditorSceneManager.OpenScene("Assets/Scenes/GameplayScene.unity");
+        }
+
+        EnemySpawner spawner = Object.FindAnyObjectByType<EnemySpawner>();
+        if (spawner != null)
+        {
+            spawner.fireSpiritPrefab = firePrefab;
+            EditorUtility.SetDirty(spawner);
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            EditorSceneManager.SaveOpenScenes();
+        }
+
+        Debug.Log("<color=orange>[MONSTER SETUP] Đã thiết lập thành công Quái Tinh Linh Lửa (Enemy-FireHighSpirit) và gắn vào Spawner GameplayScene!</color>");
     }
 
     private static void SliceSpritesheet(string assetPath, int frameCount, int frameW, int frameH)
@@ -339,6 +399,11 @@ public static class MonsterSetupTool
                 bloodPrefab,
                 demonPrefab
             };
+            GameObject firePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy-FireHighSpirit.prefab");
+            if (firePrefab != null)
+            {
+                spawner.fireSpiritPrefab = firePrefab;
+            }
             EditorUtility.SetDirty(spawner);
         }
 

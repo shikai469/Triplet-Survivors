@@ -168,7 +168,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1863117685798393564}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -307,7 +307,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2064117556659457847}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -630,7 +630,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5038813550014363105}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -1019,7 +1019,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5253294372937089250
 Transform:
   m_ObjectHideFlags: 0
@@ -1094,6 +1094,12 @@ MonoBehaviour:
   wallsRoot: {fileID: 6885612621338785559}
   cornersRoot: {fileID: 5253294372937089250}
   decorationsRoot: {fileID: 0}
+  outerVoidRenderer: {fileID: 7467108540853036010}
+  forestFloorSprite: {fileID: 3019482947192847101, guid: 2ab39871fc304b12a88190d7f45120a1, type: 3}
+  volcanoFloorSprite: {fileID: 4020593058203958202, guid: 3bc40982ad415c23b99201e8a56231b2, type: 3}
+  voidFloorSprite: {fileID: 5031604169314069303, guid: 4cd51093be526d34ca0312f9b67342c3, type: 3}
+  defaultFloorSprite: {fileID: -1176850527948888993, guid: 1ed259784b7529f4696668378d22753c, type: 3}
+  cosmicVoidSprite: {fileID: 6042715270425170404, guid: 5de62104cf637e45db14230ac78453d4, type: 3}
 --- !u!1 &8668615936530983603
 GameObject:
   m_ObjectHideFlags: 0
@@ -1135,7 +1141,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8668615936530983603}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1

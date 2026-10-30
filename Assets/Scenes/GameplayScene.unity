@@ -2405,7 +2405,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -6464,6 +6464,12 @@ MonoBehaviour:
   chestFirstSpawnDelay: 5
   chestSpawnDistanceMax: 12
   chestSpawnDistanceMin: 5
+  fireSpiritPrefab: {fileID: 5597533900907876221, guid: 9b12a4c102f447a19280e12345678999, type: 3}
+  enableRingAmbush: 1
+  ringMinInterval: 30
+  ringMaxInterval: 40
+  ringMonsterCount: 20
+  ringRadius: 10
   gameTime: 0
   currentWave: 1
   config:
