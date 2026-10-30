@@ -84,8 +84,11 @@ public class GrenadeTossSkill : MonoBehaviour
         sr.sortingOrder = 14;
 
         GrenadeProjectileLogic logic = grenade.AddComponent<GrenadeProjectileLogic>();
-        float strength = PlayerStats.Instance != null ? PlayerStats.Instance.strengthBonus : 0f;
-        float finalDmg = baseDamage * (1f + strength);
+        float totalPlayerDmg = PlayerStats.Instance != null ? PlayerStats.Instance.GetTotalAttackDamage() : 12f;
+        // Sát thương nổ AOE theo cấp: Lv 1: 130% + 5, Lv 2: 160% + 7, Lv 3: 190% + 10
+        float ratio = 1.3f + (currentLevel - 1) * 0.3f;
+        float flatBonus = 5f + (currentLevel - 1) * 2.5f;
+        float finalDmg = (totalPlayerDmg * ratio) + flatBonus;
 
         logic.Launch(transform.position, targetPos, 0.65f, explosionRadius, finalDmg);
     }

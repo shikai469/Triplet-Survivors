@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
   m_Name: GrenadeTossCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
-  icon: {fileID: 0}
-  title: "N\xE9m L\u1EF1u \u0110\u1EA1n"
+  icon: {fileID: 21300000, guid: a1100000000000000000000000000070, type: 3}
+  title: "L\u1EF1u \u0110\u1EA1n"
   description: "Theo chu k\u1EF3 t\u1EF1 \u0111\u1ED9ng n\xE9m ra qu\u1EA3 l\u1EF1u
     \u0111\u1EA1n g\xE2y n\u1ED5 di\u1EC7n r\u1ED9ng (AOE) ti\xEAu di\u1EC7t \u0111\xE1m
     \u0111\xF4ng qu\xE1i."

@@ -27,23 +27,23 @@ public static class SkillCardGeneratorEditor
             "Thỉnh thoảng bắn ra 1 viên đạn sniper bay xuyên thấu qua nhiều quái trên đường thẳng.", 3,
             new string[] { "Hồi 5.0s, đạn sniper uy lực xuyên quái", "Hồi 3.8s, tăng tốc độ bắn sniper", "Hồi 2.5s, xả đạn sniper dồn dập" });
 
-        CreateOrUpdateCard(folderPath, "MultishotCard", UpgradeData.UpgradeType.Multishot, "Đạn Tỏa",
-            "Nâng cấp súng lục bắn tỏa ra nhiều hướng hình nón. Tối đa 3 viên. (Độc quyền nhánh A)", 5,
-            new string[] { "Bắn tỏa 2 viên góc hẹp", "Bắn tỏa 2 viên chuẩn xác", "Bắn tỏa 3 viên hình nón", "Bắn tỏa 3 viên góc rộng", "Bắn tỏa 3 viên uy lực tối đa" });
+        CreateOrUpdateCard(folderPath, "MultishotCard", UpgradeData.UpgradeType.Multishot, "Shotgun",
+            "Nâng cấp súng lục thành Shotgun bắn tỏa 3 viên hình nón uy lực cực mạnh. (Độc quyền nhánh A)", 5,
+            new string[] { "Shotgun bắn tỏa 2 viên góc hẹp", "Shotgun bắn tỏa 2 viên chuẩn xác", "Shotgun bắn tỏa 3 viên hình nón", "Shotgun bắn tỏa 3 viên góc rộng", "Shotgun bắn tỏa 3 viên uy lực tối đa" });
 
-        CreateOrUpdateCard(folderPath, "BurstFireCard", UpgradeData.UpgradeType.BurstFire, "Đạn Bắn Loạt",
-            "Nâng cấp súng lục bắn chuỗi đạn liên tiếp trên cùng đường thẳng. Tối đa 3 viên. (Độc quyền nhánh B)", 5,
-            new string[] { "Bắn liên tiếp chuỗi 2 viên", "Chuỗi 2 viên tốc độ cao", "Bắn liên tiếp chuỗi 3 viên", "Chuỗi 3 viên liên hoàn", "Chuỗi 3 viên uy lực xé gió" });
+        CreateOrUpdateCard(folderPath, "BurstFireCard", UpgradeData.UpgradeType.BurstFire, "Súng Máy",
+            "Nâng cấp súng lục thành Súng Máy bắn chuỗi đạn liên thanh tốc độ cao. (Độc quyền nhánh B)", 5,
+            new string[] { "Bắn liên tiếp chuỗi 2 viên", "Chuỗi 2 viên tốc độ cao", "Bắn liên tiếp chuỗi 3 viên", "Chuỗi 3 viên liên hoàn", "Súng máy xả đạn liên thanh tối đa" });
 
-        CreateOrUpdateCard(folderPath, "OrbitSwordsCard", UpgradeData.UpgradeType.OrbitSwords, "Kiếm Bay",
-            "Tạo ra thanh kiếm xoay tròn quanh người chơi, gây sát thương cho quái chạm vào. Tối đa 3 kiếm.", 3,
-            new string[] { "1 thanh kiếm xoay quanh người", "2 thanh kiếm xoay đối xứng 180°", "3 thanh kiếm xoay quanh người như cối xay" });
+        CreateOrUpdateCard(folderPath, "OrbitSwordsCard", UpgradeData.UpgradeType.OrbitSwords, "Vung Gậy",
+            "Vung gậy bóng chày xoay tròn quanh người chơi, đánh bật quái chạm vào. Tối đa 3 gậy.", 3,
+            new string[] { "1 gậy xoay quanh người", "2 gậy xoay đối xứng 180°", "3 gậy xoay quanh người càn quét quái" });
 
         CreateOrUpdateCard(folderPath, "SeagullAllyCard", UpgradeData.UpgradeType.SeagullAlly, "Hải Âu Trợ Chiến",
             "Triệu hồi chú chim hải âu bay kè kè bên cạnh, tự động nhả đạn hạt hướng dương về phía quái.", 3,
             new string[] { "Hải âu trợ chiến, tầm bắn 5m", "Tăng tầm bắn lên 8m, nhả đạn nhanh hơn", "Tầm bắn tối đa 12m, bao quát toàn trận" });
 
-        CreateOrUpdateCard(folderPath, "GrenadeTossCard", UpgradeData.UpgradeType.GrenadeToss, "Ném Lựu Đạn",
+        CreateOrUpdateCard(folderPath, "GrenadeTossCard", UpgradeData.UpgradeType.GrenadeToss, "Lựu Đạn",
             "Theo chu kỳ tự động ném ra quả lựu đạn gây nổ diện rộng (AOE) tiêu diệt đám đông quái.", 3,
             new string[] { "Ném lựu đạn mỗi 5.0s, nổ diện rộng", "Rút ngắn thời gian chờ còn 3.5s", "Ném dồn dập mỗi 2.0s quét sạch quái" });
 
@@ -51,7 +51,7 @@ public static class SkillCardGeneratorEditor
             "Lớp giáp ảo bảo vệ đỡ đòn. Tự động hồi đầy lại sau 5s người chơi không nhận sát thương.", 3,
             new string[] { "Giáp ảo 30 HP, hồi sau 5s", "Giáp ảo 60 HP, độ bền cao", "Giáp ảo 100 HP, bảo hộ tối đa" });
 
-        CreateOrUpdateCard(folderPath, "BouncingBoomerangCard", UpgradeData.UpgradeType.BouncingBoomerang, "Boomerang Dội Tường",
+        CreateOrUpdateCard(folderPath, "BouncingBoomerangCard", UpgradeData.UpgradeType.BouncingBoomerang, "Boomerang",
             "Ném Boomerang dội ngược khi đập tường đấu trường rồi quay về người chơi. Tối đa 3 cái.", 3,
             new string[] { "Ném 1 Boomerang dội tường", "Ném 2 Boomerang cùng lúc", "Ném 3 Boomerang càn quét chiến trường" });
 

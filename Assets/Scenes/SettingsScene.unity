@@ -2780,6 +2780,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SettingsManager
   btnBack: {fileID: 618644763}
+  btnFeedback: {fileID: 298699610}
+  btnPolicy: {fileID: 522758283}
+  feedbackUrl: https://github.com/shikai469/Triplet-Survivors/issues
+  policyUrl: https://github.com/shikai469/Triplet-Survivors
   masterVolumeSlider: {fileID: 1990406553}
   musicVolumeSlider: {fileID: 969174433}
 --- !u!4 &1986341382

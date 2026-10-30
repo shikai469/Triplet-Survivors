@@ -42,6 +42,7 @@ public class PauseController : MonoBehaviour
     // 2. Tiếp tục game
     public void ResumeGame()
     {
+        SettingsManager.IsOpenedFromPause = false;
         Time.timeScale = 1f; // Khôi phục thời gian
         if (pausePanel != null) pausePanel.SetActive(false);
     }
@@ -49,6 +50,7 @@ public class PauseController : MonoBehaviour
     // 3. Bắt đầu lại (Khôi phục số vàng ban đầu, không cộng vàng nhặt được trong trận này)
     public void RestartGame()
     {
+        SettingsManager.IsOpenedFromPause = false;
         Time.timeScale = 1f;
 
         // Trả lại số vàng về đúng mốc trước khi bắt đầu màn
@@ -63,15 +65,20 @@ public class PauseController : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    // 4. Mở Cài đặt (Thêm panel sau)
+    // 4. Mở Cài đặt (Mở đè SettingsScene lên trên trận đấu đang Pause)
     public void OpenSettings()
     {
-        Debug.Log("[SETTINGS] Sẽ mở bảng Cài Đặt sau...");
+        // Tránh mở chồng nhiều lần nếu đã mở rồi
+        if (SceneManager.GetSceneByName("SettingsScene").isLoaded) return;
+
+        SettingsManager.IsOpenedFromPause = true;
+        SceneManager.LoadScene("SettingsScene", LoadSceneMode.Additive);
     }
 
     // 5. Thoát về MainMenu
     public void QuitToMainMenu()
     {
+        SettingsManager.IsOpenedFromPause = false;
         Time.timeScale = 1f; // Luôn reset Time.timeScale = 1 trước khi load scene khác
         SceneManager.LoadScene("MainMenu");
     }
@@ -79,6 +86,7 @@ public class PauseController : MonoBehaviour
     void OnDestroy()
     {
         // Đảm bảo Time.timeScale luôn trở lại bình thường nếu đối tượng bị hủy
+        SettingsManager.IsOpenedFromPause = false;
         Time.timeScale = 1f;
     }
 }

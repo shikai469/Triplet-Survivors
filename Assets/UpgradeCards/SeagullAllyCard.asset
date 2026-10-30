@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
   m_Name: SeagullAllyCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a1100000000000000000000000000060, type: 3}
   title: "H\u1EA3i \xC2u Tr\u1EE3 Chi\u1EBFn"
   description: "Tri\u1EC7u h\u1ED3i ch\xFA chim h\u1EA3i \xE2u bay k\xE8 k\xE8 b\xEAn
     c\u1EA1nh, t\u1EF1 \u0111\u1ED9ng nh\u1EA3 \u0111\u1EA1n h\u1EA1t h\u01B0\u1EDBng

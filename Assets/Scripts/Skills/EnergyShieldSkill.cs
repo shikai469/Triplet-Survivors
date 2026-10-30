@@ -62,11 +62,20 @@ public class EnergyShieldSkill : MonoBehaviour
             shieldVisual = new GameObject("ShieldAura");
             shieldVisual.transform.SetParent(transform);
             shieldVisual.transform.localPosition = Vector3.zero;
-            shieldVisual.transform.localScale = new Vector3(1.4f, 1.4f, 1f);
+            shieldVisual.transform.localScale = new Vector3(1.35f, 1.35f, 1f);
 
             shieldSr = shieldVisual.AddComponent<SpriteRenderer>();
             shieldSr.sprite = ProceduralSkillAssets.GetSprite("EnergyShieldCircle");
-            shieldSr.sortingOrder = 11;
+            // Đặt layer 9 (dưới Player là 10, dưới xa HealthCanvas là 50)
+            shieldSr.sortingOrder = 9;
+
+            // Đảm bảo thanh máu PlayerHealthCanvas luôn hiển thị rõ ràng trên cùng, không bao giờ bị khiên che khuất
+            Canvas healthCanvas = GetComponentInChildren<Canvas>();
+            if (healthCanvas != null)
+            {
+                healthCanvas.overrideSorting = true;
+                healthCanvas.sortingOrder = 50;
+            }
         }
     }
 
