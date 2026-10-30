@@ -405,6 +405,7 @@ GameObject:
   - component: {fileID: 223946082}
   - component: {fileID: 223946081}
   - component: {fileID: 223946080}
+  - component: {fileID: 223946083}
   m_Layer: 5
   m_Name: PowerUps
   m_TagString: Untagged
@@ -508,7 +509,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -526,6 +527,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 223946078}
   m_CullTransparentMesh: 1
+--- !u!114 &223946083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 223946078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0951accd7febdcd4492a422387717805, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIRoundedBorder
+  roundTopLeft: 1
+  roundTopRight: 1
+  roundBottomLeft: 1
+  roundBottomRight: 1
+  cornerRadius: 40
+  customPerCornerRadius: 0
+  topLeftRadius: 40
+  topRightRadius: 40
+  bottomLeftRadius: 40
+  bottomRightRadius: 40
+  clipChildrenWithMask: 0
+  borderThickness: 0
+  borderColor: {r: 0.85, g: 0.7, b: 0.35, a: 1}
 --- !u!1 &335496062
 GameObject:
   m_ObjectHideFlags: 0
@@ -747,6 +773,7 @@ GameObject:
   - component: {fileID: 677959826}
   - component: {fileID: 677959825}
   - component: {fileID: 677959824}
+  - component: {fileID: 677959827}
   m_Layer: 5
   m_Name: Quit
   m_TagString: Untagged
@@ -850,7 +877,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -868,6 +895,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 677959822}
   m_CullTransparentMesh: 1
+--- !u!114 &677959827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677959822}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0951accd7febdcd4492a422387717805, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIRoundedBorder
+  roundTopLeft: 1
+  roundTopRight: 1
+  roundBottomLeft: 1
+  roundBottomRight: 1
+  cornerRadius: 40
+  customPerCornerRadius: 0
+  topLeftRadius: 40
+  topRightRadius: 40
+  bottomLeftRadius: 40
+  bottomRightRadius: 40
+  clipChildrenWithMask: 0
+  borderThickness: 0
+  borderColor: {r: 0.85, g: 0.7, b: 0.35, a: 1}
 --- !u!1 &691425446
 GameObject:
   m_ObjectHideFlags: 0
@@ -880,6 +932,7 @@ GameObject:
   - component: {fileID: 691425450}
   - component: {fileID: 691425449}
   - component: {fileID: 691425448}
+  - component: {fileID: 691425451}
   m_Layer: 5
   m_Name: Start
   m_TagString: Untagged
@@ -983,7 +1036,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1001,6 +1054,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 691425446}
   m_CullTransparentMesh: 1
+--- !u!114 &691425451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691425446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0951accd7febdcd4492a422387717805, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIRoundedBorder
+  roundTopLeft: 1
+  roundTopRight: 1
+  roundBottomLeft: 1
+  roundBottomRight: 1
+  cornerRadius: 40
+  customPerCornerRadius: 0
+  topLeftRadius: 40
+  topRightRadius: 40
+  bottomLeftRadius: 40
+  bottomRightRadius: 40
+  clipChildrenWithMask: 0
+  borderThickness: 0
+  borderColor: {r: 0.85, g: 0.7, b: 0.35, a: 1}
 --- !u!1 &778186709
 GameObject:
   m_ObjectHideFlags: 0
@@ -1501,6 +1579,7 @@ GameObject:
   - component: {fileID: 1536919818}
   - component: {fileID: 1536919817}
   - component: {fileID: 1536919816}
+  - component: {fileID: 1536919819}
   m_Layer: 5
   m_Name: Settings
   m_TagString: Untagged
@@ -1604,7 +1683,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1622,6 +1701,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1536919814}
   m_CullTransparentMesh: 1
+--- !u!114 &1536919819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1536919814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0951accd7febdcd4492a422387717805, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIRoundedBorder
+  roundTopLeft: 1
+  roundTopRight: 1
+  roundBottomLeft: 1
+  roundBottomRight: 1
+  cornerRadius: 40
+  customPerCornerRadius: 0
+  topLeftRadius: 40
+  topRightRadius: 40
+  bottomLeftRadius: 40
+  bottomRightRadius: 40
+  clipChildrenWithMask: 0
+  borderThickness: 0
+  borderColor: {r: 0.85, g: 0.7, b: 0.35, a: 1}
 --- !u!1 &1655421540
 GameObject:
   m_ObjectHideFlags: 0
