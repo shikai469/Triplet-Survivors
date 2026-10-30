@@ -107,8 +107,11 @@ public class PiercingShotSkill : MonoBehaviour
 
         // Logic bay & xuyên
         PiercingBulletLogic logic = bullet.AddComponent<PiercingBulletLogic>();
-        float strength = PlayerStats.Instance != null ? PlayerStats.Instance.strengthBonus : 0f;
-        float finalDmg = baseDamage * (1f + strength);
+        float totalPlayerDmg = PlayerStats.Instance != null ? PlayerStats.Instance.GetTotalAttackDamage() : 12f;
+        // Sát thương bắn tỉa xuyên thấu theo cấp: Lv 1: 140% + 4, Lv 2: 170% + 6, Lv 3: 200% + 8
+        float ratio = 1.4f + (currentLevel - 1) * 0.3f;
+        float flatBonus = 4f + (currentLevel - 1) * 2f;
+        float finalDmg = (totalPlayerDmg * ratio) + flatBonus;
         logic.Init(direction, bulletSpeed, bulletLifeTime, finalDmg);
     }
 

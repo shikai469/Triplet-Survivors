@@ -14,9 +14,38 @@ public static class ProceduralSkillAssets
         string key = "Icon_" + type.ToString();
         if (cachedSprites.TryGetValue(key, out Sprite sp) && sp != null) return sp;
 
+#if UNITY_EDITOR
+        string assetName = MapTypeToAssetName(type);
+        if (!string.IsNullOrEmpty(assetName))
+        {
+            Sprite loaded = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/UI/Icons/{assetName}.png");
+            if (loaded != null)
+            {
+                cachedSprites[key] = loaded;
+                return loaded;
+            }
+        }
+#endif
+
         Sprite generated = GenerateIcon(type);
         cachedSprites[key] = generated;
         return generated;
+    }
+
+    private static string MapTypeToAssetName(UpgradeData.UpgradeType type)
+    {
+        switch (type)
+        {
+            case UpgradeData.UpgradeType.DamageUp:          return "Icon_DamageUp";
+            case UpgradeData.UpgradeType.PiercingShot:      return "Icon_PiercingShot";
+            case UpgradeData.UpgradeType.Multishot:         return "Icon_Shotgun";
+            case UpgradeData.UpgradeType.BurstFire:         return "Icon_MachineGun";
+            case UpgradeData.UpgradeType.OrbitSwords:       return "Icon_Bat";
+            case UpgradeData.UpgradeType.SeagullAlly:       return "Icon_Seagull";
+            case UpgradeData.UpgradeType.GrenadeToss:       return "Icon_Grenade";
+            case UpgradeData.UpgradeType.BouncingBoomerang: return "Icon_Boomerang";
+            default: return null;
+        }
     }
 
     /// <summary>
@@ -38,7 +67,7 @@ public static class ProceduralSkillAssets
             case "Magnet":   return GetSkillIcon(UpgradeData.UpgradeType.MagnetRange);
             case "Luck":     return GetSkillIcon(UpgradeData.UpgradeType.SelectItem_Coin);
             case "Growth":   return GetSkillIcon(UpgradeData.UpgradeType.FireRate);
-            case "Greed":    return GetSkillIcon(UpgradeData.UpgradeType.GrenadeToss); // đồng xu vàng riêng
+            case "Greed":    return GetSkillIcon(UpgradeData.UpgradeType.SelectItem_Coin);
             case "CritRate": return GetSkillIcon(UpgradeData.UpgradeType.PiercingShot);
             case "CritDmg":  return GetSkillIcon(UpgradeData.UpgradeType.BurstFire);
             default:         return GetSkillIcon(UpgradeData.UpgradeType.DamageUp);
@@ -48,6 +77,30 @@ public static class ProceduralSkillAssets
     public static Sprite GetSprite(string name)
     {
         if (cachedSprites.TryGetValue(name, out Sprite sp) && sp != null) return sp;
+
+#if UNITY_EDITOR
+        if (name == "SwordBlade" || name == "BaseballBat")
+        {
+            Sprite loaded = null;
+            var subAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/weaponTrail.png");
+            if (subAssets != null)
+            {
+                foreach (var obj in subAssets)
+                {
+                    if (obj is Sprite s) { loaded = s; break; }
+                }
+            }
+            if (loaded == null)
+            {
+                loaded = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Icons/Icon_Bat_Raw.png");
+            }
+            if (loaded != null)
+            {
+                cachedSprites[name] = loaded;
+                return loaded;
+            }
+        }
+#endif
 
         Sprite generated = GenerateCustomSprite(name);
         cachedSprites[name] = generated;
@@ -71,8 +124,8 @@ public static class ProceduralSkillAssets
         {
             // Slot_Dmg — đỏ đậm
             case UpgradeData.UpgradeType.DamageUp:
-                bgTop = new Color(0.75f, 0.08f, 0.08f, 1f);
-                bgBot = new Color(0.35f, 0.02f, 0.02f, 1f);
+                bgTop = new Color(0.85f, 0.12f, 0.12f, 1f);
+                bgBot = new Color(0.40f, 0.04f, 0.06f, 1f);
                 break;
             // Slot_Defense — xanh dương
             case UpgradeData.UpgradeType.EnergyShield:
@@ -89,10 +142,10 @@ public static class ProceduralSkillAssets
                 bgTop = new Color(0.10f, 0.72f, 0.22f, 1f);
                 bgBot = new Color(0.03f, 0.30f, 0.08f, 1f);
                 break;
-            // Slot_Extender — tím
+            // Slot_Extender / Vung Gậy — tím hoàng gia
             case UpgradeData.UpgradeType.OrbitSwords:
-                bgTop = new Color(0.55f, 0.10f, 0.90f, 1f);
-                bgBot = new Color(0.22f, 0.03f, 0.42f, 1f);
+                bgTop = new Color(0.60f, 0.18f, 0.92f, 1f);
+                bgBot = new Color(0.25f, 0.05f, 0.45f, 1f);
                 break;
             // Slot_Speed — xanh lam điện
             case UpgradeData.UpgradeType.MoveSpeed:
@@ -114,20 +167,35 @@ public static class ProceduralSkillAssets
                 bgTop = new Color(0.35f, 0.08f, 0.55f, 1f);
                 bgBot = new Color(0.12f, 0.02f, 0.22f, 1f);
                 break;
-            // Slot_Greed — nâu vàng
+            // Slot_Greed / Lựu Đạn — nâu vàng / olive
             case UpgradeData.UpgradeType.GrenadeToss:
-                bgTop = new Color(0.70f, 0.48f, 0.05f, 1f);
-                bgBot = new Color(0.32f, 0.20f, 0.02f, 1f);
+                bgTop = new Color(0.75f, 0.55f, 0.08f, 1f);
+                bgBot = new Color(0.35f, 0.24f, 0.02f, 1f);
                 break;
-            // Slot_CritRate — cam đậm
+            // Slot_CritRate / Đạn Xuyên Thấu — cam đậm
             case UpgradeData.UpgradeType.PiercingShot:
-                bgTop = new Color(0.90f, 0.42f, 0.05f, 1f);
-                bgBot = new Color(0.48f, 0.16f, 0.01f, 1f);
+                bgTop = new Color(0.95f, 0.48f, 0.06f, 1f);
+                bgBot = new Color(0.50f, 0.18f, 0.02f, 1f);
                 break;
-            // Slot_CritDmg — đỏ sẫm cherry
+            // Slot_CritDmg / Súng Máy — đỏ sẫm cherry
             case UpgradeData.UpgradeType.BurstFire:
-                bgTop = new Color(0.60f, 0.05f, 0.05f, 1f);
-                bgBot = new Color(0.22f, 0.01f, 0.01f, 1f);
+                bgTop = new Color(0.75f, 0.10f, 0.24f, 1f);
+                bgBot = new Color(0.35f, 0.03f, 0.10f, 1f);
+                break;
+            // Multishot / Shotgun — xanh thép/teal
+            case UpgradeData.UpgradeType.Multishot:
+                bgTop = new Color(0.18f, 0.55f, 0.72f, 1f);
+                bgBot = new Color(0.06f, 0.22f, 0.35f, 1f);
+                break;
+            // SeagullAlly — xanh da trời
+            case UpgradeData.UpgradeType.SeagullAlly:
+                bgTop = new Color(0.12f, 0.65f, 0.90f, 1f);
+                bgBot = new Color(0.04f, 0.28f, 0.50f, 1f);
+                break;
+            // BouncingBoomerang — xanh ngọc lục bảo
+            case UpgradeData.UpgradeType.BouncingBoomerang:
+                bgTop = new Color(0.14f, 0.70f, 0.32f, 1f);
+                bgBot = new Color(0.04f, 0.30f, 0.12f, 1f);
                 break;
             default:
                 bgTop = new Color(0.20f, 0.20f, 0.28f, 1f);
@@ -145,15 +213,15 @@ public static class ProceduralSkillAssets
         switch (type)
         {
             case UpgradeData.UpgradeType.DamageUp:
-                // Kiếm lớn màu vàng sáng
-                DrawSword(c, size, new Color(1.00f, 0.92f, 0.30f, 1f), new Color(1f, 1f, 1f, 0.9f));
+                // Súng lục (pistol) kèm mũi tên chỉ lên
+                DrawPistolUp(c, size, Color.white);
                 break;
             case UpgradeData.UpgradeType.EnergyShield:
-                // Khiên heraldic viền đôi hướng xuống chuẩn tham khảo
+                // Khiên heraldic viền đôi hướng xuống
                 DrawShield(c, size, new Color(0.35f, 0.70f, 0.98f, 1f), Color.white);
                 break;
             case UpgradeData.UpgradeType.SelectItem_HealPack:
-                // Trái tim cân xứng viền trắng hướng xuống
+                // Trái tim cân xứng viền trắng
                 DrawHeart(c, size, new Color(1.00f, 0.30f, 0.42f, 1f), new Color(1f, 0.85f, 0.90f, 0.95f));
                 break;
             case UpgradeData.UpgradeType.Heal:
@@ -161,11 +229,11 @@ public static class ProceduralSkillAssets
                 DrawMedicalCross(c, size, Color.white);
                 break;
             case UpgradeData.UpgradeType.OrbitSwords:
-                // 4 mũi tên tỏa ra 4 góc
-                DrawFourArrows(c, size, new Color(0.90f, 0.75f, 1.00f, 1f));
+                // Gậy bóng chày (Vung Gậy)
+                DrawBaseballBat(c, size, new Color(0.95f, 0.72f, 0.45f, 1f));
                 break;
             case UpgradeData.UpgradeType.MoveSpeed:
-                // Giày sneaker nhấc lên kèm vạch tốc độ chuẩn tham khảo
+                // Giày sneaker / tia sét tốc độ
                 DrawLightningBolt(c, size, Color.white);
                 break;
             case UpgradeData.UpgradeType.MagnetRange:
@@ -181,16 +249,28 @@ public static class ProceduralSkillAssets
                 DrawStar5(c, size, new Color(1.00f, 0.88f, 0.20f, 1f));
                 break;
             case UpgradeData.UpgradeType.GrenadeToss:
-                // Đồng xu vàng tròn có ký hiệu $
-                DrawCoin(c, size, new Color(1.00f, 0.88f, 0.20f, 1f), new Color(0.70f, 0.50f, 0.02f, 1f));
+                // Quả lựu đạn
+                DrawGrenadeIcon(c, size, Color.white);
                 break;
             case UpgradeData.UpgradeType.PiercingShot:
-                // Tâm ngắm crosshair
-                DrawCrosshair(c, size, new Color(1.00f, 0.95f, 0.80f, 1f));
+                // Súng ngắm (sniper rifle)
+                DrawSniperRifle(c, size, Color.white);
                 break;
             case UpgradeData.UpgradeType.BurstFire:
-                // Vụ nổ nhiều cánh vàng cam
-                DrawExplosion(c, size, new Color(1.00f, 0.80f, 0.10f, 1f), new Color(1f, 0.40f, 0.05f, 1f));
+                // Súng máy / súng trường
+                DrawAssaultRifle(c, size, Color.white);
+                break;
+            case UpgradeData.UpgradeType.Multishot:
+                // Shotgun
+                DrawShotgun(c, size, Color.white);
+                break;
+            case UpgradeData.UpgradeType.SeagullAlly:
+                // Chim hải âu
+                DrawSeagullBird(c, size, Color.white);
+                break;
+            case UpgradeData.UpgradeType.BouncingBoomerang:
+                // Boomerang
+                DrawBoomerangIcon(c, size, Color.white);
                 break;
             default:
                 FillCircle(c, size, new Vector2(size * .5f, size * .5f), size * 0.28f, new Color(0.9f, 0.7f, 0.2f, 1f));
@@ -289,6 +369,92 @@ public static class ProceduralSkillAssets
     // ─────────────────────────────────────────────────────────────────────────
     // ── SYMBOL DRAWING ────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────
+
+    // 1. Súng lục kèm mũi tên chỉ lên (Tăng Sát Thương)
+    static void DrawPistolUp(Color[] c, int s, Color col)
+    {
+        // Thân súng lục
+        ThickLine(c, s, new Vector2(22, 46), new Vector2(54, 46), col, 8); // nòng
+        ThickLine(c, s, new Vector2(28, 46), new Vector2(24, 26), col, 7); // báng
+        ThickLine(c, s, new Vector2(32, 36), new Vector2(38, 36), col, 3); // cò
+        // Mũi tên chỉ lên bên phải
+        ThickLine(c, s, new Vector2(64, 28), new Vector2(64, 56), col, 4);
+        ThickLine(c, s, new Vector2(56, 48), new Vector2(64, 58), col, 4);
+        ThickLine(c, s, new Vector2(72, 48), new Vector2(64, 58), col, 4);
+    }
+
+    // 2. Súng ngắm (Đạn Xuyên Thấu)
+    static void DrawSniperRifle(Color[] c, int s, Color col)
+    {
+        ThickLine(c, s, new Vector2(18, 20), new Vector2(64, 62), col, 5); // nòng chính
+        ThickLine(c, s, new Vector2(16, 18), new Vector2(26, 18), col, 6); // báng
+        // Ống ngắm (scope)
+        ThickLine(c, s, new Vector2(34, 42), new Vector2(48, 54), col, 4);
+        ThickLine(c, s, new Vector2(33, 40), new Vector2(37, 44), col, 2);
+        ThickLine(c, s, new Vector2(45, 52), new Vector2(49, 56), col, 2);
+    }
+
+    // 3A. Shotgun
+    static void DrawShotgun(Color[] c, int s, Color col)
+    {
+        ThickLine(c, s, new Vector2(18, 22), new Vector2(62, 60), col, 6);
+        ThickLine(c, s, new Vector2(16, 20), new Vector2(24, 20), col, 7);
+        ThickLine(c, s, new Vector2(36, 38), new Vector2(46, 46), col, 8); // pump
+    }
+
+    // 3B. Súng trường / Súng máy (Súng Máy)
+    static void DrawAssaultRifle(Color[] c, int s, Color col)
+    {
+        ThickLine(c, s, new Vector2(18, 22), new Vector2(62, 60), col, 5);
+        ThickLine(c, s, new Vector2(16, 20), new Vector2(24, 18), col, 7);
+        ThickLine(c, s, new Vector2(28, 28), new Vector2(25, 20), col, 4);
+        ThickLine(c, s, new Vector2(38, 38), new Vector2(44, 28), col, 4); // magazine
+    }
+
+    // 4. Gậy bóng chày (Vung Gậy)
+    static void DrawBaseballBat(Color[] c, int s, Color wood)
+    {
+        Color grip = new Color(0.2f, 0.2f, 0.2f, 1f);
+        ThickLine(c, s, new Vector2(20, 20), new Vector2(32, 32), grip, 5);
+        FillCircle(c, s, new Vector2(19, 19), 4f, grip);
+        ThickLine(c, s, new Vector2(32, 32), new Vector2(48, 48), wood, 7);
+        ThickLine(c, s, new Vector2(48, 48), new Vector2(62, 62), wood, 9);
+        FillCircle(c, s, new Vector2(62, 62), 5f, wood);
+    }
+
+    // 5. Chim hải âu (Hải Âu Trợ Chiến)
+    static void DrawSeagullBird(Color[] c, int s, Color col)
+    {
+        Color beak = new Color(1f, 0.85f, 0.2f, 1f);
+        Color tips = new Color(0.2f, 0.2f, 0.2f, 1f);
+        Vector2 center = new Vector2(s * 0.5f, s * 0.48f);
+        ThickLine(c, s, center - new Vector2(0, 10), center + new Vector2(0, 10), col, 6);
+        FillCircle(c, s, center + new Vector2(0, 12), 2.5f, beak);
+        ThickLine(c, s, center + new Vector2(0, 4), center + new Vector2(-24, 10), col, 5);
+        ThickLine(c, s, center + new Vector2(-20, 9), center + new Vector2(-26, 11), tips, 4);
+        ThickLine(c, s, center + new Vector2(0, 4), center + new Vector2(24, 10), col, 5);
+        ThickLine(c, s, center + new Vector2(20, 9), center + new Vector2(26, 11), tips, 4);
+    }
+
+    // 6. Quả lựu đạn (Lựu Đạn)
+    static void DrawGrenadeIcon(Color[] c, int s, Color col)
+    {
+        Vector2 center = new Vector2(s * 0.5f, s * 0.45f);
+        FillCircle(c, s, center, 17f, col);
+        ThickLine(c, s, center + new Vector2(0, 14), center + new Vector2(0, 22), col, 7);
+        FillRing(c, s, center + new Vector2(5, 23), 5f, 2f, col);
+    }
+
+    // 7. Boomerang
+    static void DrawBoomerangIcon(Color[] c, int s, Color col)
+    {
+        Vector2 elbow = new Vector2(30, 30);
+        ThickLine(c, s, elbow, new Vector2(22, 58), col, 8);
+        ThickLine(c, s, elbow, new Vector2(58, 22), col, 8);
+        FillCircle(c, s, elbow, 4f, col);
+        FillCircle(c, s, new Vector2(22, 58), 4f, col);
+        FillCircle(c, s, new Vector2(58, 22), 4f, col);
+    }
 
     // Slot_Dmg — kiếm thẳng đứng lớn
     static void DrawSword(Color[] c, int s, Color blade, Color edge)
@@ -703,7 +869,7 @@ public static class ProceduralSkillAssets
             if (diff < thickness)
                 colors[y * size + x] = new Color(0.2f, 0.85f, 1f, 1f - diff / thickness);
             else if (dist < radius)
-                colors[y * size + x] = new Color(0.1f, 0.6f, 1f, 0.15f);
+                colors[y * size + x] = new Color(0.1f, 0.6f, 1f, 0.04f);
         }
 
         tex.SetPixels(colors);
@@ -720,12 +886,23 @@ public static class ProceduralSkillAssets
 
     static void DrawSwordBlade(Color[] c, int w, int h)
     {
-        Color steel = new Color(0.9f, 0.95f, 1f, 1f), hilt = new Color(0.9f, 0.75f, 0.1f, 1f),
-              edge  = new Color(0.6f, 0.75f, 0.9f, 1f);
+        // Gậy bóng chày (Baseball Bat)
+        Color wood = new Color(0.78f, 0.55f, 0.32f, 1f);
+        Color woodDark = new Color(0.55f, 0.35f, 0.18f, 1f);
+        Color grip = new Color(0.2f, 0.2f, 0.2f, 1f);
+        Color knob = new Color(0.45f, 0.3f, 0.15f, 1f);
         int mid = w / 2;
-        for (int y = 6; y < h - 4; y++) { SetPx(c, w, mid, y, steel); SetPx(c, w, mid - 1, y, edge); SetPx(c, w, mid + 1, y, edge); }
-        for (int x = mid - 4; x <= mid + 4; x++) SetPx(c, w, x, 6, hilt);
-        for (int y = 1; y <= 5; y++) SetPx(c, w, mid, y, new Color(0.4f, 0.25f, 0.1f, 1f));
+        // Núm gậy & tay cầm
+        for (int y = 2; y <= 4; y++) SetPx(c, w, mid, y, knob);
+        for (int y = 5; y <= 11; y++) { SetPx(c, w, mid, y, grip); SetPx(c, w, mid - 1, y, grip); }
+        // Thân gậy
+        for (int y = 12; y <= 18; y++) { SetPx(c, w, mid, y, wood); SetPx(c, w, mid - 1, y, wood); SetPx(c, w, mid + 1, y, woodDark); }
+        // Đầu gậy to tròn
+        for (int y = 19; y < h - 4; y++)
+        {
+            for (int x = mid - 2; x <= mid + 1; x++) SetPx(c, w, x, y, wood);
+            SetPx(c, w, mid + 2, y, woodDark);
+        }
     }
 
     static void DrawSeagullSprite(Color[] c, int w, int h)

@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
   m_Name: BurstFireCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
-  icon: {fileID: 0}
-  title: "\u0110\u1EA1n Li\xEAn T\u1EE5c"
-  description: "N\xE2ng c\u1EA5p s\xFAng l\u1EE5c b\u1EAFn m\u1ED9t chu\u1ED7i \u0111\u1EA1n
-    li\xEAn ti\u1EBFp tr\xEAn c\xF9ng \u0111\u01B0\u1EDDng th\u1EB3ng. T\u1ED1i \u0111a
-    3 vi\xEAn. (\u0110\u1ED9c quy\u1EC1n nh\xE1nh B)"
+  icon: {fileID: 21300000, guid: a1100000000000000000000000000040, type: 3}
+  title: "S\xFAng M\xE1y"
+  description: "N\xE2ng c\u1EA5p s\xFAng l\u1EE5c th\xE0nh S\xFAng M\xE1y b\u1EAFn
+    chu\u1ED7i \u0111\u1EA1n li\xEAn thanh t\u1ED1c \u0111\u1ED9 cao. T\u1ED1i
+    \u0111a 3 vi\xEAn. (\u0110\u1ED9c quy\u1EC1n nh\xE1nh B)"
   maxLevel: 5
   upgradeType: 7
   levelDescriptions:
@@ -24,4 +24,4 @@ MonoBehaviour:
   - "Chu\u1ED7i 2 vi\xEAn t\u1ED1c \u0111\u1ED9 cao"
   - "B\u1EAFn li\xEAn ti\u1EBFp chu\u1ED7i 3 vi\xEAn"
   - "Chu\u1ED7i 3 vi\xEAn li\xEAn ho\xE0n"
-  - "Chu\u1ED7i 3 vi\xEAn uy l\u1EF1c x\xE9 gi\xF3"
+  - "S\xFAng m\xE1y x\u1EA3 \u0111\u1EA1n li\xEAn thanh t\u1ED1i \u0111a"

@@ -89,9 +89,11 @@ public class SeagullCompanion : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
     }
 
+    private int currentLevel = 1;
+
     public void UpdateLevel(int level, float baseDmg)
     {
-        damage = baseDmg + (level - 1) * 6f;
+        currentLevel = level;
 
         // Cập nhật tầm bắn và tốc độ bắn theo cấp
         switch (level)
@@ -198,8 +200,12 @@ public class SeagullCompanion : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Kinematic;
 
         SunflowerSeedLogic logic = seed.AddComponent<SunflowerSeedLogic>();
-        float strength = PlayerStats.Instance != null ? PlayerStats.Instance.strengthBonus : 0f;
-        logic.Init(dir, 11f, 3f, damage * (1f + strength));
+        float totalPlayerDmg = PlayerStats.Instance != null ? PlayerStats.Instance.GetTotalAttackDamage() : 12f;
+        // Đạn hạt hướng dương theo cấp: Lv 1: 55% + 1, Lv 2: 70% + 2, Lv 3: 85% + 3
+        float ratio = 0.55f + (currentLevel - 1) * 0.15f;
+        float flatBonus = 1f + (currentLevel - 1) * 1f;
+        float finalDmg = (totalPlayerDmg * ratio) + flatBonus;
+        logic.Init(dir, 11f, 3f, finalDmg);
     }
 }
 

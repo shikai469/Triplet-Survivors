@@ -22,12 +22,33 @@ public class PlayerStats : MonoBehaviour
     public int goldCount = 0;
 
     [Header("Combat & Passive Stats (Isekai Core)")]
+    public float baseAttackDamage = 12f; // Sát thương súng lục cơ bản của nhân vật
     public float strengthBonus = 0f;
     public float speedBonus = 0f;
     public float expBonus = 0f;
     public float magnetRangeBonus = 0f; // Hệ số tăng tầm hút (+0.25 = +25%)
     public int coinBonus = 0;
     public int armor = 0;
+
+    /// <summary>
+    /// Tính tổng sát thương nhân vật (Sát thương gốc + Shop vĩnh viễn + Thẻ Tăng Sát Thương + StrengthBonus).
+    /// Đây là thước đo chuẩn để toàn bộ kỹ năng (Vung Gậy, Lựu Đạn, Boomerang, v.v.) scale sát thương theo.
+    /// </summary>
+    public float GetTotalAttackDamage()
+    {
+        float total = baseAttackDamage;
+
+        // Cộng dồn cấp nâng cấp vĩnh viễn ngoài Shop Menu
+        int lvDmg = GameDataManager.GetUpgradeLevel("Dmg");
+        total += lvDmg; // Mỗi cấp Shop +1 dmg cơ bản
+
+        // Nhân hệ số thẻ Tăng Sát Thương (DamageUp) trong trận (+20% mỗi cấp)
+        int dmgUpLevel = PlayerAttack.Instance != null ? PlayerAttack.Instance.damageUpLevel : 0;
+        float dmgUpMultiplier = 1.0f + (dmgUpLevel * 0.20f);
+
+        float finalDmg = total * dmgUpMultiplier * (1.0f + strengthBonus);
+        return Mathf.Max(1f, finalDmg);
+    }
 
     [Header("Upgrades Limit")]
     public int maxUpgradeLevel = 5;

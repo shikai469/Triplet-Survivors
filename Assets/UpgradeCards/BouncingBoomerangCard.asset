@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
   m_Name: BouncingBoomerangCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
-  icon: {fileID: 0}
-  title: "Boomerang D\u1ED9i T\u01B0\u1EDDng"
+  icon: {fileID: 21300000, guid: a1100000000000000000000000000080, type: 3}
+  title: "Boomerang"
   description: "N\xE9m Boomerang d\u1ED9i ng\u01B0\u1EE3c khi \u0111\u1EADp t\u01B0\u1EDDng
     \u0111\u1EA5u tr\u01B0\u1EDDng r\u1ED3i quay v\u1EC1 ng\u01B0\u1EDDi ch\u01A1i.
     T\u1ED1i \u0111a 3 c\xE1i."

@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Kỹ năng 4: Kiếm Bay (Orbit Swords) [Max Lv 3]
-/// Cơ chế: Tạo thanh kiếm xoay tròn quanh nhân vật người chơi, gây sát thương cho quái chạm vào.
-/// Tiến trình: Lên cấp tăng số lượng kiếm. Đạt tối đa Lv 3 sẽ có 3 thanh kiếm bay quanh người.
+/// Kỹ năng 4: Vung Gậy (Orbit Bat) [Max Lv 3]
+/// Cơ chế: Tạo gậy bóng chày xoay tròn quanh nhân vật người chơi, gây sát thương cho quái chạm vào.
+/// Tiến trình: Lên cấp tăng số lượng gậy. Đạt tối đa Lv 3 sẽ có 3 gậy bay quanh người.
 /// </summary>
 public class OrbitSwordsSkill : MonoBehaviour
 {
@@ -20,6 +20,7 @@ public class OrbitSwordsSkill : MonoBehaviour
 
     private float currentAngle = 0f;
     private readonly List<GameObject> activeSwords = new List<GameObject>();
+    private GameObject swordsContainer;
 
     public void SetLevel(int level)
     {
@@ -29,6 +30,11 @@ public class OrbitSwordsSkill : MonoBehaviour
     }
 
     void OnDisable()
+    {
+        ClearSwords();
+    }
+
+    void OnDestroy()
     {
         ClearSwords();
     }
@@ -43,6 +49,12 @@ public class OrbitSwordsSkill : MonoBehaviour
             }
         }
         activeSwords.Clear();
+
+        if (swordsContainer != null)
+        {
+            Destroy(swordsContainer);
+            swordsContainer = null;
+        }
     }
 
     private void RebuildSwords()
@@ -50,14 +62,22 @@ public class OrbitSwordsSkill : MonoBehaviour
         ClearSwords();
         if (currentLevel <= 0) return;
 
-        int swordCount = currentLevel; // Lv 1: 1 kiếm, Lv 2: 2 kiếm, Lv 3: 3 kiếm
+        // Tạo container riêng biệt độc lập, KHÔNG gán làm con của Player
+        // Tránh hoàn toàn xung đột vật lý Nested Rigidbody2D (khiến nhân vật bị kéo phóng tốc độ cao)
+        if (swordsContainer == null)
+        {
+            swordsContainer = new GameObject("OrbitSwords_Container");
+        }
+
+        Collider2D playerCollider = GetComponent<Collider2D>();
+        int swordCount = currentLevel; // Lv 1: 1 gậy, Lv 2: 2 gậy, Lv 3: 3 gậy
 
         for (int i = 0; i < swordCount; i++)
         {
-            GameObject sword = new GameObject($"OrbitSword_{i}");
-            sword.transform.SetParent(transform);
+            GameObject sword = new GameObject($"OrbitBat_{i}");
+            sword.transform.SetParent(swordsContainer.transform);
 
-            // Sprite kiếm
+            // Sprite gậy
             SpriteRenderer sr = sword.AddComponent<SpriteRenderer>();
             sr.sprite = customSwordSprite != null ? customSwordSprite : ProceduralSkillAssets.GetSprite("SwordBlade");
             sr.sortingOrder = 12;
@@ -68,12 +88,20 @@ public class OrbitSwordsSkill : MonoBehaviour
             box.isTrigger = true;
             box.size = new Vector2(0.4f, 1.2f);
 
+            // Bỏ qua va chạm tuyệt đối với Player
+            if (playerCollider != null)
+            {
+                Physics2D.IgnoreCollision(box, playerCollider, true);
+            }
+
             Rigidbody2D rb = sword.AddComponent<Rigidbody2D>();
             rb.bodyType = RigidbodyType2D.Kinematic;
             rb.gravityScale = 0;
 
             OrbitBladeLogic blade = sword.AddComponent<OrbitBladeLogic>();
-            blade.damage = baseDamage;
+            // Tỷ lệ sát thương theo cấp: Lv 1: 45% + 2, Lv 2: 60% + 4, Lv 3: 75% + 6
+            blade.damageRatio = 0.45f + (currentLevel - 1) * 0.15f;
+            blade.flatBonus = 2f + (currentLevel - 1) * 2f;
 
             activeSwords.Add(sword);
         }
@@ -81,7 +109,7 @@ public class OrbitSwordsSkill : MonoBehaviour
         UpdateSwordPositions();
     }
 
-    void Update()
+    void LateUpdate()
     {
         if (currentLevel <= 0 || activeSwords.Count == 0) return;
 
@@ -107,7 +135,7 @@ public class OrbitSwordsSkill : MonoBehaviour
             Vector3 offset = new Vector3(Mathf.Cos(angleRad), Mathf.Sin(angleRad), 0f) * orbitRadius;
             activeSwords[i].transform.position = playerPos + offset;
 
-            // Xoay lưỡi kiếm hướng ra ngoài hoặc theo hướng quay
+            // Xoay gậy hướng theo vòng xoay
             float rotAngle = (currentAngle + i * angleStep) - 90f;
             activeSwords[i].transform.rotation = Quaternion.Euler(0, 0, rotAngle);
         }
@@ -119,7 +147,8 @@ public class OrbitSwordsSkill : MonoBehaviour
 /// </summary>
 public class OrbitBladeLogic : MonoBehaviour
 {
-    public float damage = 25f;
+    public float damageRatio = 0.45f;
+    public float flatBonus = 2f;
     private readonly Dictionary<Collider2D, float> lastHitTimes = new Dictionary<Collider2D, float>();
     private const float HitCooldown = 0.35f; // Thời gian giãn cách giữa 2 lần chém cùng 1 quái
 
@@ -136,14 +165,15 @@ public class OrbitBladeLogic : MonoBehaviour
 
             lastHitTimes[other] = now;
 
-            float strength = PlayerStats.Instance != null ? PlayerStats.Instance.strengthBonus : 0f;
-            float finalDmg = damage * (1f + strength);
+            // Sát thương scale trực tiếp từ tổng sát thương nhân vật
+            float totalPlayerDmg = PlayerStats.Instance != null ? PlayerStats.Instance.GetTotalAttackDamage() : 12f;
+            float finalDmg = (totalPlayerDmg * damageRatio) + flatBonus;
 
             EnemyHealth enemy = other.GetComponent<EnemyHealth>();
             if (enemy != null)
             {
                 Vector2 pushDir = (other.transform.position - transform.position).normalized;
-                enemy.TakeDamage(Mathf.RoundToInt(finalDmg), false, pushDir);
+                enemy.TakeDamage(Mathf.Max(1, Mathf.RoundToInt(finalDmg)), false, pushDir);
             }
 
             LootChest chest = other.GetComponent<LootChest>();

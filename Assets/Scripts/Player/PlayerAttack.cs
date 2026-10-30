@@ -124,46 +124,45 @@ public class PlayerAttack : MonoBehaviour
             // === TRẠNG THÁI BÌNH THƯỜNG ===
             if (multishotLevel > 0)
             {
-                // Lựa chọn A: Đạn Tõe (Multishot)
-                // Cấp 1-2: 2 viên, Cấp 3-5: 3 viên (Tối đa ở cấp 5 bắn tõe 3 viên)
+                // Shotgun: bắn chùm tỏa (mỗi viên ~60% dmg nhân vật, áp sát ăn trọn 180% dmg)
+                float shotgunRatio = 0.55f + (multishotLevel * 0.05f);
                 int bulletsCount = (multishotLevel >= 3) ? 3 : 2;
                 float spread = 12f + (multishotLevel * 2f);
 
                 if (bulletsCount == 2)
                 {
-                    SpawnSingleBullet(Quaternion.Euler(0, 0, -spread * 0.5f) * baseDir);
-                    SpawnSingleBullet(Quaternion.Euler(0, 0, spread * 0.5f) * baseDir);
+                    SpawnSingleBullet(Quaternion.Euler(0, 0, -spread * 0.5f) * baseDir, shotgunRatio);
+                    SpawnSingleBullet(Quaternion.Euler(0, 0, spread * 0.5f) * baseDir, shotgunRatio);
                 }
                 else
                 {
-                    SpawnSingleBullet(Quaternion.Euler(0, 0, -spread) * baseDir);
-                    SpawnSingleBullet(baseDir);
-                    SpawnSingleBullet(Quaternion.Euler(0, 0, spread) * baseDir);
+                    SpawnSingleBullet(Quaternion.Euler(0, 0, -spread) * baseDir, shotgunRatio);
+                    SpawnSingleBullet(baseDir, shotgunRatio);
+                    SpawnSingleBullet(Quaternion.Euler(0, 0, spread) * baseDir, shotgunRatio);
                 }
             }
             else if (burstFireLevel > 0)
             {
-                // Lựa chọn B: Đạn Liên Tục (Burst Fire)
-                // Cấp 1-2: 2 viên, Cấp 3-5: 3 viên
+                // Súng Máy: xả chuỗi 2-3 viên liên thanh, mỗi viên 65% dmg nhân vật
                 int burstCount = (burstFireLevel >= 3) ? 3 : 2;
-                StartCoroutine(BurstShootRoutine(target, burstCount, 0.07f));
+                StartCoroutine(BurstShootRoutine(target, burstCount, 0.07f, 0.65f));
             }
             else
             {
-                // Súng lục mặc định 1 viên
-                SpawnSingleBullet(baseDir);
+                // Súng lục mặc định 1 viên chuẩn 100% dmg nhân vật
+                SpawnSingleBullet(baseDir, 1.0f);
             }
         }
     }
 
-    private IEnumerator BurstShootRoutine(Transform target, int count, float interval)
+    private IEnumerator BurstShootRoutine(Transform target, int count, float interval, float damageRatio = 1.0f)
     {
         for (int i = 0; i < count; i++)
         {
             if (target != null)
             {
                 Vector2 dir = (target.position - transform.position).normalized;
-                SpawnSingleBullet(dir);
+                SpawnSingleBullet(dir, damageRatio);
             }
             else
             {
@@ -173,7 +172,7 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    private void SpawnSingleBullet(Vector2 shootDirection)
+    private void SpawnSingleBullet(Vector2 shootDirection, float damageRatio = 1.0f)
     {
         if (bulletPrefab == null) return;
 
@@ -187,9 +186,9 @@ public class PlayerAttack : MonoBehaviour
         {
             bl.SetDirection(shootDirection);
 
-            // Mục 1: Tăng Sát Thương (Damage Up) - mỗi cấp +20% sát thương
-            float dmgMultiplier = 1.0f + (damageUpLevel * 0.20f);
-            bl.baseDamage = 15f * dmgMultiplier;
+            // Sát thương tính theo tổng sát thương nhân vật * hệ số nhánh súng
+            float totalPlayerDmg = PlayerStats.Instance != null ? PlayerStats.Instance.GetTotalAttackDamage() : 12f;
+            bl.baseDamage = totalPlayerDmg * damageRatio;
         }
 
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();

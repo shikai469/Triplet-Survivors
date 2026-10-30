@@ -18,6 +18,8 @@ public class UpgradeCardUI : MonoBehaviour
             if (icon != null)
             {
                 skillIcon.sprite = icon;
+                skillIcon.color = Color.white;
+                skillIcon.preserveAspect = true;
                 skillIcon.enabled = true;
             }
             else
@@ -35,6 +37,12 @@ public class UpgradeCardUI : MonoBehaviour
 
         if (selectButton != null)
         {
+            // Tắt triệt để mọi persistent event (ví dụ UpgradeMoveSpeed cũ được kéo trong Inspector)
+            for (int i = 0; i < selectButton.onClick.GetPersistentEventCount(); i++)
+            {
+                selectButton.onClick.SetPersistentListenerState(i, UnityEngine.Events.UnityEventCallState.Off);
+            }
+
             selectButton.onClick.RemoveAllListeners();
             selectButton.onClick.AddListener(() => onClickAction?.Invoke());
         }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
   m_Name: DamageUpCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a1100000000000000000000000000010, type: 3}
   title: "T\u0103ng S\xE1t Th\u01B0\u01A1ng"
   description: "T\u0103ng tr\u1EF1c ti\u1EBFp s\xE1t th\u01B0\u01A1ng \u0111\u1EA1n
     cho s\xFAng l\u1EE5c m\u1EB7c \u0111\u1ECBnh (+20% m\u1ED7i c\u1EA5p)."

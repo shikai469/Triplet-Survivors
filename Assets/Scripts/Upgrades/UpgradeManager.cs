@@ -81,13 +81,13 @@ public class UpgradeManager : MonoBehaviour
         // Tự động bổ sung các kỹ năng còn thiếu (tên ngắn gọn, không ngoặc)
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.DamageUp, "Tăng Sát Thương", "Tăng trực tiếp sát thương đạn súng lục (+20% mỗi cấp).", 5);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.PiercingShot, "Đạn Xuyên Thấu", "Bắn ra viên đạn sniper cực mạnh bay xuyên thấu qua nhiều quái trên đường thẳng.", 3);
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.Multishot, "Đạn Tỏa", "Nâng cấp súng lục bắn tỏa ra nhiều hướng. Tối đa ở cấp 5 bắn tỏa 3 viên.", 5);
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.BurstFire, "Đạn Bắn Loạt", "Nâng cấp súng lục bắn một chuỗi đạn liên tiếp trên đường thẳng. Tối đa 3 viên liên tục.", 5);
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.OrbitSwords, "Kiếm Bay", "Tạo kiếm xoay quanh nhân vật gây sát thương cho quái chạm vào. Tối đa 3 kiếm.", 3);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.Multishot, "Shotgun", "Nâng cấp súng lục thành Shotgun bắn tỏa 3 viên hình nón uy lực cực mạnh.", 5);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.BurstFire, "Súng Máy", "Nâng cấp súng lục thành Súng Máy xả chuỗi đạn liên thanh tốc độ cao.", 5);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.OrbitSwords, "Vung Gậy", "Vung gậy bóng chày xoay quanh nhân vật đánh bật quái tiếp cận. Tối đa 3 gậy.", 3);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.SeagullAlly, "Hải Âu Trợ Chiến", "Triệu hồi chú chim hải âu bay kè kè bên cạnh, tự động nhả đạn hạt hướng dương về phía quái.", 3);
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.GrenadeToss, "Ném Lựu Đạn", "Tự động ném quả lựu đạn gây nổ diện rộng (AOE) tiêu diệt đám đông quái.", 3);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.GrenadeToss, "Lựu Đạn", "Tự động ném quả lựu đạn gây nổ diện rộng (AOE) tiêu diệt đám đông quái.", 3);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.EnergyShield, "Giáp Hộ Thể", "Tạo lớp giáp ảo bảo vệ đỡ đòn. Tự động hồi đầy lại sau 5 giây không bị đánh.", 3);
-        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.BouncingBoomerang, "Boomerang Dội Tường", "Ném Boomerang dội ngược khi chạm tường rồi quay về người chơi. Tối đa 3 cái.", 3);
+        AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.BouncingBoomerang, "Boomerang", "Ném Boomerang dội ngược khi chạm tường rồi quay về người chơi. Tối đa 3 cái.", 3);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.MoveSpeed, "Tăng Tốc Chạy", "Tăng 15% tốc độ di chuyển giúp né quái linh hoạt hơn.", 5);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.FireRate, "Tốc Độ Bắn", "Tăng 20% tốc độ bắn đạn súng lục.", 5);
         AddDefaultCardIfMissing(existingTypes, UpgradeData.UpgradeType.MagnetRange, "Tầm Hút", "Mở rộng bán kính tự động hút vàng và ngọc kinh nghiệm.", 5);

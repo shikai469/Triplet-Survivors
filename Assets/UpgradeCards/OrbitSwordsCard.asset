@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a60f0ab17552347ae2c3b474fdb1cd, type: 3}
   m_Name: OrbitSwordsCard
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
-  icon: {fileID: 0}
-  title: "Ki\u1EBFm Bay"
-  description: "T\u1EA1o ra thanh ki\u1EBFm xoay tr\xF2n quanh ng\u01B0\u1EDDi ch\u01A1i,
-    g\xE2y s\xE1t th\u01B0\u01A1ng cho qu\xE1i ch\u1EA1m v\xE0o. T\u1ED1i \u0111a
-    3 ki\u1EBFm."
+  icon: {fileID: 21300000, guid: a1100000000000000000000000000050, type: 3}
+  title: "Vung G\u1EADy"
+  description: "Vung g\u1EADy b\xF3ng ch\xE0y xoay tr\xF2n quanh ng\u01B0\u1EDDi
+    ch\u01A1i, \u0111\xE1nh b\u1EADt qu\xE1i ch\u1EA1m v\xE0o. T\u1ED1i \u0111a
+    3 g\u1EADy."
   maxLevel: 3
   upgradeType: 8
   levelDescriptions:
-  - "1 thanh ki\u1EBFm xoay quanh ng\u01B0\u1EDDi"
-  - "2 thanh ki\u1EBFm xoay \u0111\u1ED1i x\u1EE9ng 180\xB0"
-  - "3 thanh ki\u1EBFm xoay quanh ng\u01B0\u1EDDi nh\u01B0 c\u1ED1i xay"
+  - "1 g\u1EADy xoay quanh ng\u01B0\u1EDDi"
+  - "2 g\u1EADy xoay \u0111\u1ED1i x\u1EE9ng 180\xB0"
+  - "3 g\u1EADy xoay quanh ng\u01B0\u1EDDi c\xE0n qu\xE9t qu\xE1i"

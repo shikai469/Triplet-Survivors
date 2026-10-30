@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -12,27 +13,70 @@ public class BouncingBoomerangSkill : MonoBehaviour
     public const int MaxLevel = 3;
 
     [Header("Settings")]
-    public float throwCooldown = 3.2f;
+    public float throwCooldown = 2.8f;
     public float boomerangSpeed = 10f;
     public float baseDamage = 28f;
 
-    private float throwTimer = 0f;
+    private float cooldownTimer = 0f;
+    private bool hasInitializedFirstThrow = false;
+    private readonly List<GameObject> activeBoomerangs = new List<GameObject>();
 
     public void SetLevel(int level)
     {
         currentLevel = Mathf.Clamp(level, 0, MaxLevel);
         enabled = (currentLevel > 0);
+
+        if (currentLevel > 0 && !hasInitializedFirstThrow)
+        {
+            cooldownTimer = throwCooldown; // Sẵn sàng ném đợt đầu khi vừa mở kỹ năng
+            hasInitializedFirstThrow = true;
+        }
+    }
+
+    void OnDisable()
+    {
+        ClearActiveBoomerangs();
+    }
+
+    void OnDestroy()
+    {
+        ClearActiveBoomerangs();
+    }
+
+    private void ClearActiveBoomerangs()
+    {
+        for (int i = 0; i < activeBoomerangs.Count; i++)
+        {
+            if (activeBoomerangs[i] != null)
+            {
+                Destroy(activeBoomerangs[i]);
+            }
+        }
+        activeBoomerangs.Clear();
     }
 
     void Update()
     {
         if (currentLevel <= 0) return;
 
-        throwTimer += Time.deltaTime;
-        if (throwTimer >= throwCooldown)
+        // Dọn dẹp các boomerang đã bay về tới người chơi (hoặc hết thời gian tồn tại)
+        activeBoomerangs.RemoveAll(b => b == null);
+
+        // QUY TẮC: Nếu vẫn còn Boomerang đang bay ngoài sân (chưa quay trở lại người chơi),
+        // TUYỆT ĐỐI KHÔNG ném tiếp và CHƯA đếm thời gian hồi chiêu
+        if (activeBoomerangs.Count > 0)
+        {
+            cooldownTimer = 0f;
+            return;
+        }
+
+        // Khi toàn bộ Boomerang đã quay về tới người chơi:
+        // Bắt đầu đếm thời gian hồi chiêu rồi mới ném tiếp đợt mới
+        cooldownTimer += Time.deltaTime;
+        if (cooldownTimer >= throwCooldown)
         {
             ThrowBoomerangs();
-            throwTimer = 0f;
+            cooldownTimer = 0f;
         }
     }
 
@@ -66,11 +110,15 @@ public class BouncingBoomerangSkill : MonoBehaviour
             Quaternion rot = Quaternion.Euler(0, 0, currentAng);
             Vector2 dir = rot * baseDir;
 
-            SpawnSingleBoomerang(dir);
+            GameObject bm = SpawnSingleBoomerang(dir);
+            if (bm != null)
+            {
+                activeBoomerangs.Add(bm);
+            }
         }
     }
 
-    private void SpawnSingleBoomerang(Vector2 dir)
+    private GameObject SpawnSingleBoomerang(Vector2 dir)
     {
         GameObject bm = new GameObject("BoomerangProjectile");
         bm.transform.position = transform.position;
@@ -88,10 +136,14 @@ public class BouncingBoomerangSkill : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Kinematic;
 
         BoomerangProjectileLogic logic = bm.AddComponent<BoomerangProjectileLogic>();
-        float strength = PlayerStats.Instance != null ? PlayerStats.Instance.strengthBonus : 0f;
-        float finalDmg = baseDamage * (1f + strength);
+        float totalPlayerDmg = PlayerStats.Instance != null ? PlayerStats.Instance.GetTotalAttackDamage() : 12f;
+        // Sát thương Boomerang theo cấp (chạm 2 lần đi + về): Lv 1: 70% + 2, Lv 2: 85% + 3, Lv 3: 100% + 5
+        float ratio = 0.70f + (currentLevel - 1) * 0.15f;
+        float flatBonus = 2f + (currentLevel - 1) * 1.5f;
+        float finalDmg = (totalPlayerDmg * ratio) + flatBonus;
 
         logic.Launch(transform, dir, boomerangSpeed, finalDmg);
+        return bm;
     }
 
     private Transform FindClosestEnemy()
@@ -151,6 +203,12 @@ public class BoomerangProjectileLogic : MonoBehaviour
         if (!hasBounced)
         {
             CheckBoundaryBounce();
+
+            // Nếu bay quá thời gian tối đa mà chưa chạm tường (đấu trường quá rộng), tự động quay về
+            if (!hasBounced && lifeTimer >= 1.5f)
+            {
+                hasBounced = true;
+            }
         }
         else
         {
@@ -158,10 +216,10 @@ public class BoomerangProjectileLogic : MonoBehaviour
             if (playerTransform != null)
             {
                 Vector2 toPlayer = (playerTransform.position - transform.position).normalized;
-                currentDir = Vector2.Lerp(currentDir, toPlayer, Time.deltaTime * 6f).normalized;
+                currentDir = Vector2.Lerp(currentDir, toPlayer, Time.deltaTime * 7f).normalized;
 
-                // Nếu chạm lại người chơi thì hoàn thành vòng lặp ném
-                if (Vector2.Distance(transform.position, playerTransform.position) < 0.8f && lifeTimer > 0.8f)
+                // Nếu chạm lại người chơi thì hoàn thành vòng lặp ném (thu boomerang về)
+                if (Vector2.Distance(transform.position, playerTransform.position) < 0.9f && lifeTimer > 0.35f)
                 {
                     Destroy(gameObject);
                     return;
@@ -239,8 +297,14 @@ public class BoomerangProjectileLogic : MonoBehaviour
     {
         HandleHit(other);
 
-        // Nếu va chạm với Tường vật lý trong game
-        if (other.CompareTag("Wall") || other.name.Contains("Wall"))
+        // Kiểm tra va chạm với Tường an toàn (chống crash nếu tag Wall chưa được khởi tạo)
+        bool isWall = other.name.IndexOf("Wall", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        if (!isWall)
+        {
+            try { isWall = other.CompareTag("Wall"); } catch { }
+        }
+
+        if (isWall)
         {
             if (!hasBounced)
             {
