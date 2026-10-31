@@ -69,7 +69,7 @@ public class LevelNode : MonoBehaviour
             {
                 if (difficulty == DifficultyLevel.Endless)
                 {
-                    bossTime = "Mỗi 02:00 (Định kỳ)";
+                    bossTime = "02:00";
                 }
                 else
                 {

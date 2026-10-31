@@ -198,6 +198,35 @@ public class LevelSelectManager : MonoBehaviour
         txt.color = Color.white;
     }
 
+    public static string GetDifficultyDisplayName(DifficultyLevel diff)
+    {
+        switch (diff)
+        {
+            case DifficultyLevel.Easy: return "Dễ";
+            case DifficultyLevel.Normal: return "Thường";
+            case DifficultyLevel.Hard: return "Khó";
+            case DifficultyLevel.Endless: return "Vô Hạn";
+            default: return diff.ToString();
+        }
+    }
+
+    public static string GetDefaultMapDetail(DifficultyLevel diff)
+    {
+        switch (diff)
+        {
+            case DifficultyLevel.Easy:
+                return "Thảo nguyên yên bình, quái máu thấp.\nThích hợp làm quen nhịp độ và kỹ năng.";
+            case DifficultyLevel.Normal:
+                return "Rừng rậm nguy hiểm, quái bắt đầu có giáp.\nCần giữ khoảng cách và nâng cấp hợp lý.";
+            case DifficultyLevel.Hard:
+                return "Núi lửa khắc nghiệt, quái giáp dày và nổ tự sát.\nThử thách áp lực cao cho chiến binh kỳ cựu.";
+            case DifficultyLevel.Endless:
+                return "Vực sâu vô tận, quái mạnh dần theo thời gian.\nBoss ra mỗi 2 phút, thử thách kỷ lục sinh tồn!";
+            default:
+                return "";
+        }
+    }
+
     // ---- Khi người chơi chọn một level ----
     public void OnLevelSelected(LevelNode node)
     {
@@ -205,13 +234,21 @@ public class LevelSelectManager : MonoBehaviour
 
         node.RefreshRecords();
         selectedDifficulty = node.difficulty;
-        selectedLevelName = node.levelName;
+        selectedLevelName = GetDifficultyDisplayName(node.difficulty);
         selectedNode = node;
 
         // 1. Cập nhật UI Detail Panel
-        if (txtLevelName != null) txtLevelName.text = node.levelName;
-        if (txtDetail != null) txtDetail.text = node.levelDetail;
-        if (txtBossTime != null) txtBossTime.text = $"Boss Time:\n<b>{node.bossTime}</b>";
+        if (txtLevelName != null) txtLevelName.text = selectedLevelName;
+        if (txtDetail != null)
+        {
+            string detail = !string.IsNullOrEmpty(node.levelDetail) &&
+                            !node.levelDetail.Contains("Mô Tả Level") &&
+                            !node.levelDetail.Contains("Detail-")
+                ? node.levelDetail
+                : GetDefaultMapDetail(node.difficulty);
+            txtDetail.text = detail;
+        }
+        if (txtBossTime != null) txtBossTime.text = $"Boss Time: <b>{node.bossTime}</b>";
         if (txtClearCount != null) txtClearCount.text = $"Clear: <b>{node.clearCount}</b>";
         if (txtDeathCount != null) txtDeathCount.text = $"Death: <b>{node.deathCount}</b>";
         if (txtSurvivalTime != null) txtSurvivalTime.text = $"Best: <b>{node.survivalTime}</b>";

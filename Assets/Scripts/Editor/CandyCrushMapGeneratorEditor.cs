@@ -4,6 +4,7 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -231,101 +232,308 @@ public static class CandyCrushMapGeneratorEditor
         int W = MAP_WIDTH;
         int H = MAP_HEIGHT;
 
+        string previewDir = Path.Combine(Directory.GetCurrentDirectory(), "Assets", "Sprites", "UI", "MapPreviews");
+        string pathEasy = Path.Combine(previewDir, "MapPreview_Easy.png");
+        string pathNormal = Path.Combine(previewDir, "MapPreview_Normal.png");
+        string pathHard = Path.Combine(previewDir, "MapPreview_Hard.png");
+        string pathEndless = Path.Combine(previewDir, "MapPreview_Endless.png");
+
+        bool hasAllPreviews = File.Exists(pathEasy) && File.Exists(pathNormal) &&
+                              File.Exists(pathHard) && File.Exists(pathEndless);
+
         using (Bitmap bmp = new Bitmap(W, H, PixelFormat.Format32bppArgb))
-        using (Graphics g = Graphics.FromImage(bmp))
         {
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            g.Clear(Color.FromArgb(20, 20, 30));
-
-            // 1. NỀN 4 TẦNG ĐỊA HÌNH (GDI+ Y: 0 ở đỉnh, 1500 ở đáy)
-            // • Tier 4: Hư không (0 .. 375)
-            // • Tier 3: Dung nham (375 .. 750)
-            // • Tier 2: Rừng tối (750 .. 1125)
-            // • Tier 1: Thảo nguyên (1125 .. 1500)
-
-            using (LinearGradientBrush bVoid = new LinearGradientBrush(
-                new Rectangle(0, 0, W, 400),
-                Color.FromArgb(8, 4, 20),
-                Color.FromArgb(24, 10, 48),
-                LinearGradientMode.Vertical))
+            // 1. Dựng nền 4 tầng địa hình từ Map Previews hoặc Procedural
+            if (hasAllPreviews)
             {
-                g.FillRectangle(bVoid, 0, 0, W, 375);
+                CompositeBaseFromPreviews(bmp, pathEasy, pathNormal, pathHard, pathEndless, W, H);
+            }
+            else
+            {
+                RenderProceduralBase(bmp, W, H);
             }
 
-            using (LinearGradientBrush bLava = new LinearGradientBrush(
-                new Rectangle(0, 370, W, 385),
-                Color.FromArgb(28, 14, 18),
-                Color.FromArgb(42, 18, 16),
-                LinearGradientMode.Vertical))
+            // 2. Cắt viền lởm chởm, răng cưa kiểu giấy rách / đấu trường Brotato (Trong suốt bên ngoài)
+            ApplyBrotatoJaggedBorder(bmp, W, H);
+
+            using (Graphics g = Graphics.FromImage(bmp))
             {
-                g.FillRectangle(bLava, 0, 375, W, 375);
-            }
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            using (LinearGradientBrush bForest = new LinearGradientBrush(
-                new Rectangle(0, 745, W, 385),
-                Color.FromArgb(14, 28, 24),
-                Color.FromArgb(22, 48, 38),
-                LinearGradientMode.Vertical))
-            {
-                g.FillRectangle(bForest, 0, 750, W, 375);
-            }
+                // 3. Con đường Candy Crush uốn lượn nối chính xác qua tâm 4 nút
+                DrawCandyCrushRoad(g, pEasy, pNormal, pHard, pEndless);
 
-            using (LinearGradientBrush bGrass = new LinearGradientBrush(
-                new Rectangle(0, 1120, W, 385),
-                Color.FromArgb(38, 74, 32),
-                Color.FromArgb(58, 112, 46),
-                LinearGradientMode.Vertical))
-            {
-                g.FillRectangle(bGrass, 0, 1125, W, 375);
-            }
+                // 4. Vùng đệm tròn phẳng (+30px) làm trống chi tiết để 4 nút nổi bật tuyệt đối
+                DrawPedestal(g, pEasy, bufferRadius, 1);
+                DrawPedestal(g, pNormal, bufferRadius, 2);
+                DrawPedestal(g, pHard, bufferRadius, 3);
+                DrawPedestal(g, pEndless, bufferRadius, 4);
 
-            // 2. CÁC ĐƯỜNG PHÂN RANH HỮU CƠ MỀM MẠI GIỮA CÁC TẦNG
-            DrawOrganicBoundary(g, 1125, Color.FromArgb(32, 65, 30), Color.FromArgb(18, 40, 32), W);
-            DrawOrganicBoundary(g, 750, Color.FromArgb(20, 38, 30), Color.FromArgb(35, 16, 16), W);
-            DrawOrganicBoundary(g, 375, Color.FromArgb(32, 14, 16), Color.FromArgb(14, 8, 32), W);
+                // 5. Nhãn tên độ khó trên các khoảng trống
+                float xBadgeEndless = pEndless.X < W * 0.5f ? (pEndless.X + 340f) : (pEndless.X - 340f);
+                DrawDifficultyBadge(g, xBadgeEndless, pEndless.Y, "VÔ HẠN", 4);
 
-            // 3. CHI TIẾT TRANG TRÍ CHỈ NẰM Ở RÌA NGOÀI (X < 180 hoặc X > 720)
-            DrawGrasslandDecorations(g, W, 1125, 1500);
-            DrawDarkForestDecorations(g, W, 750, 1125);
-            DrawLavaDecorations(g, W, 375, 750);
-            DrawVoidDecorations(g, W, 0, 375);
+                float xBadgeHard = pHard.X < W * 0.5f ? (pHard.X + 340f) : (pHard.X - 340f);
+                DrawDifficultyBadge(g, xBadgeHard, pHard.Y, "KHÓ", 3);
 
-            // 4. CON ĐƯỜNG CANDY CRUSH BEZIER UỐN LƯỢN NỐI CHÍNH XÁC QUA TÂM 4 NÚT
-            DrawCandyCrushRoad(g, pEasy, pNormal, pHard, pEndless);
+                float xBadgeNormal = pNormal.X < W * 0.5f ? (pNormal.X + 340f) : (pNormal.X - 340f);
+                DrawDifficultyBadge(g, xBadgeNormal, pNormal.Y, "THƯỜNG", 2);
 
-            // 5. VÙNG ĐỆM TRÒN PHẲNG (+30px) LÀM TRỐNG CHI TIẾT ĐỂ 4 NÚT NỔI BẬT TUYỆT ĐỐI
-            DrawPedestal(g, pEasy, bufferRadius, 1);
-            DrawPedestal(g, pNormal, bufferRadius, 2);
-            DrawPedestal(g, pHard, bufferRadius, 3);
-            DrawPedestal(g, pEndless, bufferRadius, 4);
-
-            // 6. NHÃN TÊN ĐỘ KHÓ TRÊN CÁC KHOẢNG TRỐNG BÊN CẠNH NÚT
-            // Nút đầu (Endless ở bên phải -> khoảng trống bên trái): "VÔ HẠN"
-            float xBadgeEndless = pEndless.X < W * 0.5f ? (pEndless.X + 340f) : (pEndless.X - 340f);
-            DrawDifficultyBadge(g, xBadgeEndless, pEndless.Y, "VÔ HẠN", 4);
-
-            // Nút tiếp dưới (Hard ở bên trái -> khoảng trống bên phải): "KHÓ"
-            float xBadgeHard = pHard.X < W * 0.5f ? (pHard.X + 340f) : (pHard.X - 340f);
-            DrawDifficultyBadge(g, xBadgeHard, pHard.Y, "KHÓ", 3);
-
-            // Nút tiếp dưới (Normal ở bên phải -> khoảng trống bên trái): "BÌNH THƯỜNG"
-            float xBadgeNormal = pNormal.X < W * 0.5f ? (pNormal.X + 340f) : (pNormal.X - 340f);
-            DrawDifficultyBadge(g, xBadgeNormal, pNormal.Y, "BÌNH THƯỜNG", 2);
-
-            // Nút dưới cùng (Easy ở bên trái -> khoảng trống bên phải): "DỄ"
-            float xBadgeEasy = pEasy.X < W * 0.5f ? (pEasy.X + 340f) : (pEasy.X - 340f);
-            DrawDifficultyBadge(g, xBadgeEasy, pEasy.Y, "DỄ", 1);
-
-            // Vignette nhẹ ở viền ngoài cùng
-            using (Pen pVignette = new Pen(Color.FromArgb(80, 5, 5, 15), 18f))
-            {
-                g.DrawRectangle(pVignette, 9, 9, W - 18, H - 18);
+                float xBadgeEasy = pEasy.X < W * 0.5f ? (pEasy.X + 340f) : (pEasy.X - 340f);
+                DrawDifficultyBadge(g, xBadgeEasy, pEasy.Y, "DỄ", 1);
             }
 
             bmp.Save(path, ImageFormat.Png);
         }
+    }
+
+    private static void CompositeBaseFromPreviews(Bitmap targetBmp, string pathEasy, string pathNormal, string pathHard, string pathEndless, int W, int H)
+    {
+        using (Bitmap bEasy = new Bitmap(pathEasy))
+        using (Bitmap bNorm = new Bitmap(pathNormal))
+        using (Bitmap bHard = new Bitmap(pathHard))
+        using (Bitmap bEndl = new Bitmap(pathEndless))
+        {
+            Rectangle rect = new Rectangle(0, 0, W, H);
+            BitmapData dTarget = targetBmp.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            BitmapData dEasy   = bEasy.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData dNorm   = bNorm.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData dHard   = bHard.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData dEndl   = bEndl.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+
+            int byteCount = W * H * 4;
+            byte[] pxTarget = new byte[byteCount];
+            byte[] pxEasy   = new byte[byteCount];
+            byte[] pxNorm   = new byte[byteCount];
+            byte[] pxHard   = new byte[byteCount];
+            byte[] pxEndl   = new byte[byteCount];
+
+            Marshal.Copy(dEasy.Scan0, pxEasy, 0, byteCount);
+            Marshal.Copy(dNorm.Scan0, pxNorm, 0, byteCount);
+            Marshal.Copy(dHard.Scan0, pxHard, 0, byteCount);
+            Marshal.Copy(dEndl.Scan0, pxEndl, 0, byteCount);
+
+            // Clean header text in Endless preview (dòng text VỰC SÂU HƯ KHÔNG ở y=60..150)
+            // Thay bằng pattern sao/hư không lấy từ y=180..270
+            for (int y = 60; y < 150; y++)
+            {
+                int srcRow = (180 + (y - 60)) * W * 4;
+                int dstRow = y * W * 4;
+                Array.Copy(pxEndl, srcRow, pxEndl, dstRow, W * 4);
+            }
+
+            float blendR = 55.0f;
+
+            for (int y = 0; y < H; y++)
+            {
+                int rowOffset = y * W * 4;
+                for (int x = 0; x < W; x++)
+                {
+                    int i = rowOffset + x * 4;
+
+                    // Đường phân ranh hữu cơ lượn sóng tự nhiên giữa các tầng
+                    float b1 = 375f + (float)(Math.Sin(x * 0.012) * 35.0 + Math.Cos(x * 0.025) * 18.0);
+                    float b2 = 750f + (float)(Math.Sin(x * 0.015 + 1.2) * 35.0 + Math.Cos(x * 0.02) * 18.0);
+                    float b3 = 1125f + (float)(Math.Sin(x * 0.011 + 2.5) * 35.0 + Math.Cos(x * 0.022) * 18.0);
+
+                    float t1 = Math.Max(0f, Math.Min(1f, (y - (b1 - blendR)) / (2f * blendR)));
+                    float t2 = Math.Max(0f, Math.Min(1f, (y - (b2 - blendR)) / (2f * blendR)));
+                    float t3 = Math.Max(0f, Math.Min(1f, (y - (b3 - blendR)) / (2f * blendR)));
+
+                    float wEndl = 1f - t1;
+                    float wHard = t1 * (1f - t2);
+                    float wNorm = t2 * (1f - t3);
+                    float wEasy = t3;
+
+                    // Trộn màu 4 tầng (BGRA trong Format32bppArgb)
+                    float b = pxEndl[i] * wEndl + pxHard[i] * wHard + pxNorm[i] * wNorm + pxEasy[i] * wEasy;
+                    float g = pxEndl[i + 1] * wEndl + pxHard[i + 1] * wHard + pxNorm[i + 1] * wNorm + pxEasy[i + 1] * wEasy;
+                    float r = pxEndl[i + 2] * wEndl + pxHard[i + 2] * wHard + pxNorm[i + 2] * wNorm + pxEasy[i + 2] * wEasy;
+
+                    pxTarget[i]     = (byte)Math.Min(255f, Math.Max(0f, b));
+                    pxTarget[i + 1] = (byte)Math.Min(255f, Math.Max(0f, g));
+                    pxTarget[i + 2] = (byte)Math.Min(255f, Math.Max(0f, r));
+                    pxTarget[i + 3] = 255;
+                }
+            }
+
+            Marshal.Copy(pxTarget, 0, dTarget.Scan0, byteCount);
+
+            targetBmp.UnlockBits(dTarget);
+            bEasy.UnlockBits(dEasy);
+            bNorm.UnlockBits(dNorm);
+            bHard.UnlockBits(dHard);
+            bEndl.UnlockBits(dEndl);
+        }
+    }
+
+    private static void RenderProceduralBase(Bitmap bmp, int W, int H)
+    {
+        using (Graphics g = Graphics.FromImage(bmp))
+        {
+            using (LinearGradientBrush bVoid = new LinearGradientBrush(new Rectangle(0, 0, W, 400), Color.FromArgb(8, 4, 20), Color.FromArgb(24, 10, 48), LinearGradientMode.Vertical))
+                g.FillRectangle(bVoid, 0, 0, W, 375);
+            using (LinearGradientBrush bLava = new LinearGradientBrush(new Rectangle(0, 370, W, 385), Color.FromArgb(28, 14, 18), Color.FromArgb(42, 18, 16), LinearGradientMode.Vertical))
+                g.FillRectangle(bLava, 0, 375, W, 375);
+            using (LinearGradientBrush bForest = new LinearGradientBrush(new Rectangle(0, 745, W, 385), Color.FromArgb(14, 28, 24), Color.FromArgb(22, 48, 38), LinearGradientMode.Vertical))
+                g.FillRectangle(bForest, 0, 750, W, 375);
+            using (LinearGradientBrush bGrass = new LinearGradientBrush(new Rectangle(0, 1120, W, 385), Color.FromArgb(38, 74, 32), Color.FromArgb(58, 112, 46), LinearGradientMode.Vertical))
+                g.FillRectangle(bGrass, 0, 1125, W, 375);
+
+            DrawOrganicBoundary(g, 1125, Color.FromArgb(32, 65, 30), Color.FromArgb(18, 40, 32), W);
+            DrawOrganicBoundary(g, 750, Color.FromArgb(20, 38, 30), Color.FromArgb(35, 16, 16), W);
+            DrawOrganicBoundary(g, 375, Color.FromArgb(32, 14, 16), Color.FromArgb(14, 8, 32), W);
+
+            DrawGrasslandDecorations(g, W, 1125, 1500);
+            DrawDarkForestDecorations(g, W, 750, 1125);
+            DrawLavaDecorations(g, W, 375, 750);
+            DrawVoidDecorations(g, W, 0, 375);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // VIỀN LỞM CHỞM / RĂNG CƯA / TỰ NHIÊN PHONG CÁCH BROTATO (TRONG SUỐT NGOÀI)
+    // ─────────────────────────────────────────────────────────────────────────
+    private static void ApplyBrotatoJaggedBorder(Bitmap targetBmp, int W, int H)
+    {
+        Rectangle rect = new Rectangle(0, 0, W, H);
+        BitmapData dTarget = targetBmp.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        int byteCount = W * H * 4;
+        byte[] px = new byte[byteCount];
+        Marshal.Copy(dTarget.Scan0, px, 0, byteCount);
+
+        float cornerR = 25.0f;
+
+        // Bảng tính trước lề viền rách / lởm chởm tỉ lệ chuẩn theo Brotato
+        float[] jagTop = new float[W];
+        float[] jagBot = new float[W];
+        for (int x = 0; x < W; x++)
+        {
+            jagTop[x] = 22.0f + (float)(Math.Sin(x * 0.0405 + 1.7) * 7.5 + Math.Sin(x * 0.1215 + 0.4) * 5.5 + (((x + 3) % 5) - 2) * 1.2);
+            jagBot[x] = 22.0f + (float)(Math.Sin(x * 0.0405 + 2.1) * 7.5 + Math.Sin(x * 0.1215 + 2.5) * 5.5 + ((x % 5) - 2) * 1.2);
+        }
+
+        float[] jagLeft = new float[H];
+        float[] jagRight = new float[H];
+        for (int y = 0; y < H; y++)
+        {
+            jagLeft[y] = 20.0f + (float)(Math.Sin(y * 0.0154) * 5.5 + Math.Sin(y * 0.046 + 1.2) * 4.0 + ((y % 5) - 2) * 1.0);
+            jagRight[y] = 20.0f + (float)(Math.Sin(y * 0.0154 + 2.5) * 5.5 + Math.Sin(y * 0.046 + 3.8) * 4.0 + (((y + 2) % 5) - 2) * 1.0);
+        }
+
+        byte rimB = 12, rimG = 16, rimR = 22; // Viền đen xém / cháy cạnh
+        float shadowB = 28f, shadowG = 36f, shadowR = 45f; // Bóng đổ viền mềm
+
+        for (int y = 0; y < H; y++)
+        {
+            int rowOffset = y * W * 4;
+            float jL = jagLeft[y];
+            float jR = jagRight[y];
+
+            for (int x = 0; x < W; x++)
+            {
+                int i = rowOffset + x * 4;
+
+                float dL = x - jL;
+                float dR = (W - 1 - jR) - x;
+                float dT = y - jagTop[x];
+                float dB = (H - 1 - jagBot[x]) - y;
+
+                float d;
+                if (dL < cornerR && dT < cornerR)
+                {
+                    float cx = cornerR - dL; float cy = cornerR - dT;
+                    d = cornerR - (float)Math.Sqrt(cx * cx + cy * cy);
+                }
+                else if (dR < cornerR && dT < cornerR)
+                {
+                    float cx = cornerR - dR; float cy = cornerR - dT;
+                    d = cornerR - (float)Math.Sqrt(cx * cx + cy * cy);
+                }
+                else if (dL < cornerR && dB < cornerR)
+                {
+                    float cx = cornerR - dL; float cy = cornerR - dB;
+                    d = cornerR - (float)Math.Sqrt(cx * cx + cy * cy);
+                }
+                else if (dR < cornerR && dB < cornerR)
+                {
+                    float cx = cornerR - dR; float cy = cornerR - dB;
+                    d = cornerR - (float)Math.Sqrt(cx * cx + cy * cy);
+                }
+                else
+                {
+                    d = Math.Min(Math.Min(dL, dR), Math.Min(dT, dB));
+                }
+
+                if (d < 0f)
+                {
+                    // Hoàn toàn trong suốt ở rìa ngoài để lộ hình nền Background phía sau
+                    px[i]     = 0;
+                    px[i + 1] = 0;
+                    px[i + 2] = 0;
+                    px[i + 3] = 0;
+                }
+                else if (d < 1.5f)
+                {
+                    // Khử răng cưa mép viền
+                    px[i]     = rimB;
+                    px[i + 1] = rimG;
+                    px[i + 2] = rimR;
+                    px[i + 3] = (byte)(d / 1.5f * 255f);
+                }
+                else if (d < 4.0f)
+                {
+                    // Viền đen xém / cháy cạnh đậm nét phong cách Brotato
+                    px[i]     = rimB;
+                    px[i + 1] = rimG;
+                    px[i + 2] = rimR;
+                    px[i + 3] = 255;
+                }
+                else if (d < 16.0f)
+                {
+                    // Bóng đổ viền mềm vào nền địa hình
+                    float t = (d - 4.0f) / 12.0f;
+                    px[i]     = (byte)Math.Min(255f, Math.Max(0f, shadowB * (1f - t) + px[i] * t));
+                    px[i + 1] = (byte)Math.Min(255f, Math.Max(0f, shadowG * (1f - t) + px[i + 1] * t));
+                    px[i + 2] = (byte)Math.Min(255f, Math.Max(0f, shadowR * (1f - t) + px[i + 2] * t));
+                    px[i + 3] = 255;
+                }
+                // Nếu d >= 16.0f: giữ nguyên màu nền địa hình
+            }
+        }
+
+        // Tạo các chấm hạt / đá sỏi / vết tì nhỏ tự nhiên như bản đồ Brotato
+        System.Random rnd = new System.Random(42);
+        for (int s = 0; s < 180; s++)
+        {
+            int sx = rnd.Next(50, W - 50);
+            int sy = rnd.Next(50, H - 50);
+            int sz = rnd.Next(2, 5);
+
+            for (int dy = 0; dy < sz; dy++)
+            {
+                int py = sy + dy;
+                if (py >= H) continue;
+                for (int dx = 0; dx < sz; dx++)
+                {
+                    int pxCoord = sx + dx;
+                    if (pxCoord >= W) continue;
+
+                    int idx = py * W * 4 + pxCoord * 4;
+                    if (px[idx + 3] == 255)
+                    {
+                        px[idx]     = (byte)(px[idx] * 0.45f);
+                        px[idx + 1] = (byte)(px[idx + 1] * 0.45f);
+                        px[idx + 2] = (byte)(px[idx + 2] * 0.45f);
+                    }
+                }
+            }
+        }
+
+        Marshal.Copy(px, 0, dTarget.Scan0, byteCount);
+        targetBmp.UnlockBits(dTarget);
     }
 
     private static void DrawOrganicBoundary(Graphics g, float midY, Color colBelow, Color colAbove, int W)
