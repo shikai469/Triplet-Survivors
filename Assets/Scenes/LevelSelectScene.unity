@@ -255,8 +255,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   difficulty: 1
   autoSyncSavedRecords: 1
-  levelName: "B\xECnh Th\u01B0\u1EDDng"
-  mapPreviewImage: {fileID: 0}
+  levelName: "Th\u01B0\u1EDDng (R\u1EEBng Huy\u1EC1n B\xED)"
+  mapPreviewImage: {fileID: 3019482947192847101, guid: 2ab39871fc304b12a88190d7f45120a1, type: 3}
   inGameBackgroundSprite: {fileID: 0}
   inGameBackgroundMaterial: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
@@ -704,8 +704,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   difficulty: 2
   autoSyncSavedRecords: 1
-  levelName: "Kh\xF3"
-  mapPreviewImage: {fileID: 0}
+  levelName: "Kh\xF3 (H\u1ECFa S\u01A1n Dung Nham)"
+  mapPreviewImage: {fileID: 4020593058203958202, guid: 3bc40982ad415c23b99201e8a56231b2, type: 3}
   inGameBackgroundSprite: {fileID: 0}
   inGameBackgroundMaterial: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
@@ -850,7 +850,7 @@ MonoBehaviour:
   difficulty: 0
   autoSyncSavedRecords: 1
   levelName: "D\u1EC5"
-  mapPreviewImage: {fileID: 0}
+  mapPreviewImage: {fileID: -1176850527948888993, guid: 1ed259784b7529f4696668378d22753c, type: 3}
   inGameBackgroundSprite: {fileID: 0}
   inGameBackgroundMaterial: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
@@ -1589,8 +1589,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   difficulty: 3
   autoSyncSavedRecords: 1
-  levelName: "V\xF4 T\u1EADn"
-  mapPreviewImage: {fileID: 0}
+  levelName: "V\xF4 H\u1EA1n (V\u1EF1c S\xE2u H\u01B0 Kh\xF4ng)"
+  mapPreviewImage: {fileID: 5031604169314069303, guid: 4cd51093be526d34ca0312f9b67342c3, type: 3}
   inGameBackgroundSprite: {fileID: 0}
   inGameBackgroundMaterial: {fileID: 0}
   levelDetail: "M\xF4 T\u1EA3 Level---------------------------------------------------------------------------------------------------"
@@ -2639,10 +2639,10 @@ MonoBehaviour:
   fadeSpeed: 2
   defaultMapSprite: {fileID: 21300000, guid: d4b8e23f99aa4c17b5e11234a567890f, type: 3}
   mapPreviewSprites:
-  - {fileID: 21300000, guid: c3d4e5f6a1b247890123456789abcdef, type: 3}
-  - {fileID: 21300000, guid: d4e5f6a1b2c347890123456789abcdef, type: 3}
-  - {fileID: 21300000, guid: e5f6a1b2c3d447890123456789abcdef, type: 3}
-  - {fileID: 21300000, guid: f6a1b2c3d4e547890123456789abcdef, type: 3}
+  - {fileID: -1176850527948888993, guid: 1ed259784b7529f4696668378d22753c, type: 3}
+  - {fileID: 3019482947192847101, guid: 2ab39871fc304b12a88190d7f45120a1, type: 3}
+  - {fileID: 4020593058203958202, guid: 3bc40982ad415c23b99201e8a56231b2, type: 3}
+  - {fileID: 5031604169314069303, guid: 4cd51093be526d34ca0312f9b67342c3, type: 3}
   levelDetailPanelBg: {fileID: 0}
   detailPanelBgColor: {r: 0.04, g: 0.06, b: 0.12, a: 0.78}
   txtLevelName: {fileID: 69328874}

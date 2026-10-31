@@ -568,11 +568,7 @@ public class LevelSelectManager : MonoBehaviour
 
         if (selectedNode != null)
         {
-            Sprite bgToUse = selectedNode.inGameBackgroundSprite != null
-                ? selectedNode.inGameBackgroundSprite
-                : ResolvePreviewSprite(selectedNode) ?? selectedNode.mapPreviewImage;
-
-            GameDataManager.SelectedBackgroundSprite = bgToUse;
+            GameDataManager.SelectedBackgroundSprite = selectedNode.inGameBackgroundSprite;
             GameDataManager.SelectedBackgroundMaterial = selectedNode.inGameBackgroundMaterial;
         }
 

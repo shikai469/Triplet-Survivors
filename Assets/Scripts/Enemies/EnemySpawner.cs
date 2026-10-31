@@ -18,6 +18,20 @@ public class EnemySpawner : MonoBehaviour
     public float chestSpawnDistanceMax = 12f;
     public float chestSpawnDistanceMin = 5f;
 
+    [Header("Fire Spirit Ring Ambush (Vòng Tròn Tinh Linh Lửa)")]
+    [Tooltip("Prefab Quái Tinh Linh Lửa")]
+    public GameObject fireSpiritPrefab;
+    [Tooltip("Bật/Tắt sự kiện vòng tròn bao vây")]
+    public bool enableRingAmbush = true;
+    [Tooltip("Khoảng thời gian ngẫu nhiên tối thiểu giữa các lần xuất hiện vòng tròn (giây)")]
+    public float ringMinInterval = 30f;
+    [Tooltip("Khoảng thời gian ngẫu nhiên tối đa giữa các lần xuất hiện vòng tròn (giây)")]
+    public float ringMaxInterval = 40f;
+    [Tooltip("Số lượng quái tinh linh lửa tạo thành vòng tròn")]
+    public int ringMonsterCount = 20;
+    [Tooltip("Bán kính vòng tròn bao vây (độ to rộng)")]
+    public float ringRadius = 10f;
+
     [Header("Wave Progression")]
     public float gameTime = 0f;
     public int currentWave = 1;
@@ -41,6 +55,10 @@ public class EnemySpawner : MonoBehaviour
 
         StartCoroutine(SpawnRoutine());
         StartCoroutine(SpawnChestRoutine());
+        if (enableRingAmbush)
+        {
+            StartCoroutine(SpawnRingAmbushRoutine());
+        }
     }
 
     public void InitializeSpawner(DifficultyConfig difficultyConfig)
@@ -262,5 +280,109 @@ public class EnemySpawner : MonoBehaviour
             ? ObjectPool.Instance.Get(lootChestPrefab, spawnPos, Quaternion.identity)
             : Instantiate(lootChestPrefab, spawnPos, Quaternion.identity);
         Debug.Log($"<color=cyan>[LOOT CHEST] Rương đã xuất hiện tại tọa độ: {spawnPos} (Cách người chơi {randomDistance:F1}m)</color>");
+    }
+
+    IEnumerator SpawnRingAmbushRoutine()
+    {
+        while (enableRingAmbush)
+        {
+            float waitTime = Random.Range(ringMinInterval, ringMaxInterval);
+            yield return new WaitForSeconds(waitTime);
+
+            if (player == null)
+            {
+                if (PlayerStats.Instance != null) player = PlayerStats.Instance.transform;
+                if (player == null) continue;
+            }
+
+            if (fireSpiritPrefab == null)
+            {
+#if UNITY_EDITOR
+                fireSpiritPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy-FireHighSpirit.prefab");
+#endif
+                if (fireSpiritPrefab == null) continue;
+            }
+
+            SpawnFireSpiritRing();
+        }
+    }
+
+    [ContextMenu("Test Spawn Fire Spirit Ring Now")]
+    public void SpawnFireSpiritRing()
+    {
+        if (player == null)
+        {
+            if (PlayerStats.Instance != null) player = PlayerStats.Instance.transform;
+            if (player == null) return;
+        }
+
+        if (fireSpiritPrefab == null)
+        {
+#if UNITY_EDITOR
+            fireSpiritPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy-FireHighSpirit.prefab");
+#endif
+            if (fireSpiritPrefab == null) return;
+        }
+
+        Vector3 center = player.position;
+        float angleStep = 360f / Mathf.Max(1, ringMonsterCount);
+
+        Debug.Log($"<color=orange>[SPAWNER] Bão Tinh Linh Lửa xuất hiện! {ringMonsterCount} quái bao vây người chơi (Bán kính {ringRadius}m)</color>");
+
+        // Tính chỉ số tăng tiến theo wave và Curse
+        int curseLv = GameDataManager.GetCurseLevel();
+        float curseMultiplier = 1.0f + (curseLv * 0.10f);
+
+        float baseHpMult = config != null ? config.baseHpMultiplier : 1.0f;
+        float growthRate = config != null ? config.hpGrowthPerWave : 0.25f;
+        float finalHpMult = baseHpMult * (1.0f + (currentWave - 1) * growthRate) * curseMultiplier;
+
+        int extraArmor = 0;
+        if (config != null && currentWave >= config.armorStartWave)
+        {
+            extraArmor = Mathf.FloorToInt((currentWave - config.armorStartWave + 1) * config.armorGrowthRate);
+        }
+
+        int minDmg = config != null ? config.minDamage : 8;
+        int maxDmg = config != null ? config.maxDamage : 15;
+        int rolledDamage = Random.Range(minDmg, maxDmg + 1);
+
+        float baseSpeed = config != null ? config.baseMoveSpeed : 1.8f;
+        float maxSpeed = config != null ? config.maxMoveSpeed : 2.8f;
+        float calculatedSpeed = Mathf.Min(maxSpeed, baseSpeed + (currentWave - 1) * 0.08f);
+
+        float knockback = config != null ? config.knockbackResistance : 40f;
+
+        for (int i = 0; i < ringMonsterCount; i++)
+        {
+            float angleDeg = i * angleStep;
+            float angleRad = angleDeg * Mathf.Deg2Rad;
+            Vector3 offset = new Vector3(Mathf.Cos(angleRad), Mathf.Sin(angleRad), 0f) * ringRadius;
+            Vector3 rawPos = center + offset;
+
+            // Đảm bảo không spawn ngoài tường đấu trường Brotato
+            Vector3 spawnPos = BrotatoArena.Instance != null
+                ? BrotatoArena.Instance.ClampPosition(rawPos, padding: 0.8f)
+                : rawPos;
+
+            spawnPos.z = 0f;
+
+            // Sinh từ Object Pool
+            GameObject spirit = ObjectPool.Instance != null
+                ? ObjectPool.Instance.Get(fireSpiritPrefab, spawnPos, Quaternion.identity)
+                : Instantiate(fireSpiritPrefab, spawnPos, Quaternion.identity);
+
+            EnemyHealth enemyHealth = spirit.GetComponent<EnemyHealth>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.InitStats(finalHpMult, extraArmor, knockback, boss: false);
+            }
+
+            EnemyMovement enemyMovement = spirit.GetComponent<EnemyMovement>();
+            if (enemyMovement != null)
+            {
+                enemyMovement.InitMovement(calculatedSpeed, rolledDamage, knockback);
+            }
+        }
     }
 }

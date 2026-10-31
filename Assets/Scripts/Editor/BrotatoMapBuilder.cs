@@ -5,8 +5,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Editor Tool tự động tạo Asset đồ họa, Prefab và thiết lập Đấu Trường Map phong cách Brotato
-/// vào GameplayScene của Triplet Survivors.
+/// Editor Tool tự động tạo Asset đồ họa, Prefab và thiết lập Đấu Trường Map phong cách chuẩn Brotato
+/// theo 3 chủ đề cấp độ:
+/// - Thường: Rừng nguyên sinh huyền bí
+/// - Khó: Hỏa sơn và dung nham
+/// - Vô Hạn: Vực sâu hư không
+/// - Dễ: Đất cát nguyên bản
 /// </summary>
 public static class BrotatoMapBuilder
 {
@@ -24,28 +28,30 @@ public static class BrotatoMapBuilder
     {
         EnsureFolderExists(SPRITES_FOLDER);
 
-        Debug.Log("<color=yellow>[BROTATO MAP] Đang tạo bộ texture procedural chuẩn phong cách Brotato...</color>");
+        Debug.Log("<color=yellow>[BROTATO MAP] Đang tạo bộ texture procedural chuẩn phong cách Brotato cho các cấp độ...</color>");
 
-        string floorPath = Path.Combine(SPRITES_FOLDER, "BrotatoFloor.png");
-        string wallHPath = Path.Combine(SPRITES_FOLDER, "BrotatoWallHorizontal.png");
-        string wallVPath = Path.Combine(SPRITES_FOLDER, "BrotatoWallVertical.png");
-        string cornerPath = Path.Combine(SPRITES_FOLDER, "BrotatoCornerPost.png");
-        string voidPath = Path.Combine(SPRITES_FOLDER, "BrotatoOuterVoid.png");
+        string defaultFloorPath = Path.Combine(SPRITES_FOLDER, "BrotatoFloor.png");
+        string forestPath = Path.Combine(SPRITES_FOLDER, "BrotatoFloor_Forest.png");
+        string volcanoPath = Path.Combine(SPRITES_FOLDER, "BrotatoFloor_Volcano.png");
+        string voidPath = Path.Combine(SPRITES_FOLDER, "BrotatoFloor_Void.png");
+        string voidOuterPath = Path.Combine(SPRITES_FOLDER, "BrotatoOuterVoid.png");
+        string cosmicOuterPath = Path.Combine(SPRITES_FOLDER, "BrotatoOuterVoid_Cosmic.png");
 
-        GenerateFloorTexture(floorPath);
-        GenerateWallHorizontalTexture(wallHPath);
-        GenerateWallVerticalTexture(wallVPath);
-        GenerateCornerPostTexture(cornerPath);
-        GenerateOuterVoidTexture(voidPath);
+        GenerateDefaultFloorTexture(defaultFloorPath);
+        GenerateForestFloorTexture(forestPath);
+        GenerateVolcanoFloorTexture(volcanoPath);
+        GenerateVoidFloorTexture(voidPath);
+        GenerateOuterVoidTexture(voidOuterPath);
+        GenerateCosmicOuterVoidTexture(cosmicOuterPath);
 
         AssetDatabase.Refresh();
 
-        // Cấu hình import texture thành Sprite 2D
-        ConfigureSpriteImporter(floorPath, PPU, TextureWrapMode.Clamp);
-        ConfigureSpriteImporter(wallHPath, PPU, TextureWrapMode.Clamp);
-        ConfigureSpriteImporter(wallVPath, PPU, TextureWrapMode.Clamp);
-        ConfigureSpriteImporter(cornerPath, PPU, TextureWrapMode.Clamp);
-        ConfigureSpriteImporter(voidPath, PPU, TextureWrapMode.Repeat);
+        ConfigureSpriteImporter(defaultFloorPath, PPU, TextureWrapMode.Clamp);
+        ConfigureSpriteImporter(forestPath, PPU, TextureWrapMode.Clamp);
+        ConfigureSpriteImporter(volcanoPath, PPU, TextureWrapMode.Clamp);
+        ConfigureSpriteImporter(voidPath, PPU, TextureWrapMode.Clamp);
+        ConfigureSpriteImporter(voidOuterPath, PPU, TextureWrapMode.Repeat);
+        ConfigureSpriteImporter(cosmicOuterPath, PPU, TextureWrapMode.Repeat);
 
         AssetDatabase.Refresh();
 
@@ -56,25 +62,23 @@ public static class BrotatoMapBuilder
     [MenuItem("Tools/Brotato/2. Replace Original Map in GameplayScene")]
     public static void ReplaceMapInGameplayScene()
     {
-        // 1. Đảm bảo Assets đã được tạo
         if (!File.Exists(PREFAB_PATH))
         {
             GenerateAllAssets();
         }
 
-        // 2. Mở GameplayScene nếu chưa mở
         Scene currentScene = SceneManager.GetActiveScene();
         if (currentScene.path != SCENE_PATH)
         {
             currentScene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
         }
 
-        Debug.Log("<color=cyan>[BROTATO MAP] Đang thay thế map gốc trong GameplayScene...</color>");
+        Debug.Log("<color=cyan>[BROTATO MAP] Đang cập nhật map trong GameplayScene...</color>");
 
-        // 3. Xử lý đối tượng InfiniteBackground cũ (thường là con của Main Camera)
         Camera mainCam = Camera.main;
         if (mainCam != null)
         {
+            mainCam.backgroundColor = Color.black;
             Transform oldBg = mainCam.transform.Find("InfiniteBackground");
             if (oldBg != null)
             {
@@ -83,22 +87,18 @@ public static class BrotatoMapBuilder
             }
         }
 
-        // Tìm thêm bất kỳ InfiniteBackground nào khác trong scene (nếu có)
         InfiniteBackground[] oldBgs = Object.FindObjectsByType<InfiniteBackground>();
         foreach (var bg in oldBgs)
         {
             Undo.DestroyObjectImmediate(bg.gameObject);
         }
 
-        // 4. Xóa đối tượng BrotatoArenaMap cũ nếu đã tồn tại để cập nhật bản mới nhất
         BrotatoArena oldArena = Object.FindAnyObjectByType<BrotatoArena>();
-
         if (oldArena != null)
         {
             Undo.DestroyObjectImmediate(oldArena.gameObject);
         }
 
-        // 5. Instantiate Prefab BrotatoArenaMap vào Scene
         GameObject prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
         if (prefabAsset == null)
         {
@@ -110,7 +110,6 @@ public static class BrotatoMapBuilder
         arenaInstance.transform.position = Vector3.zero;
         Undo.RegisterCreatedObjectUndo(arenaInstance, "Create Brotato Arena Map");
 
-        // 6. Reset vị trí Player về tâm đấu trường (0, 0, 0)
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -118,7 +117,6 @@ public static class BrotatoMapBuilder
             Debug.Log("[BROTATO MAP] Đã đặt vị trí Player về trung tâm đấu trường (0, 0, 0).");
         }
 
-        // 7. Cập nhật CameraFollow
         if (mainCam != null)
         {
             mainCam.transform.position = new Vector3(0, 0, -10f);
@@ -130,12 +128,11 @@ public static class BrotatoMapBuilder
             }
         }
 
-        // 8. Đánh dấu scene dirty và lưu
         EditorSceneManager.MarkSceneDirty(currentScene);
         EditorSceneManager.SaveScene(currentScene);
 
         Debug.Log("<color=green>=========================================================</color>");
-        Debug.Log("<color=green>[BROTATO MAP] HOÀN TẤT! ĐÃ THAY THẾ BẢN ĐỒ GỐC THÀNH CÔNG VỚI ĐẤU TRƯỜNG BROTATO!</color>");
+        Debug.Log("<color=green>[BROTATO MAP] HOÀN TẤT! ĐẤU TRƯỜNG CHUẨN BROTATO ĐÃ ĐƯỢC ÁP DỤNG THÀNH CÔNG!</color>");
         Debug.Log("<color=green>=========================================================</color>");
     }
 
@@ -149,17 +146,18 @@ public static class BrotatoMapBuilder
         arenaScript.arenaHeight = ARENA_HEIGHT;
         arenaScript.wallThickness = WALL_THICKNESS;
 
-        // 1. Outer Void (Nền tối bên ngoài đấu trường làm nổi bật sàn đấu)
+        // 1. Outer Void
         GameObject outerVoidObj = new GameObject("OuterVoid");
         outerVoidObj.transform.SetParent(root.transform, false);
-        outerVoidObj.transform.localPosition = new Vector3(0, 0, 0);
+        outerVoidObj.transform.localPosition = Vector3.zero;
         SpriteRenderer voidRenderer = outerVoidObj.AddComponent<SpriteRenderer>();
         voidRenderer.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoOuterVoid.png"));
         voidRenderer.drawMode = SpriteDrawMode.Tiled;
-        voidRenderer.size = new Vector2(90f, 65f); // Bao phủ rộng rãi toàn bộ tầm nhìn xa
+        voidRenderer.size = new Vector2(100f, 70f);
         voidRenderer.sortingOrder = -20;
+        arenaScript.outerVoidRenderer = voidRenderer;
 
-        // 2. Arena Floor (Mặt sàn chính đấu trường)
+        // 2. Arena Floor
         GameObject floorObj = new GameObject("Floor");
         floorObj.transform.SetParent(root.transform, false);
         floorObj.transform.localPosition = Vector3.zero;
@@ -168,368 +166,241 @@ public static class BrotatoMapBuilder
         floorRenderer.sortingOrder = -10;
         arenaScript.floorRenderer = floorRenderer;
 
-        // 3. Walls Root (Chứa 4 bờ tường rào chặn va chạm)
+        // Gán các sprite themed maps vào BrotatoArena component
+        arenaScript.defaultFloorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoFloor.png"));
+        arenaScript.forestFloorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoFloor_Forest.png"));
+        arenaScript.volcanoFloorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoFloor_Volcano.png"));
+        arenaScript.voidFloorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoFloor_Void.png"));
+        arenaScript.cosmicVoidSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoOuterVoid_Cosmic.png"));
+
+        // 3. Walls Root
         GameObject wallsRoot = new GameObject("Walls");
         wallsRoot.transform.SetParent(root.transform, false);
         arenaScript.wallsRoot = wallsRoot.transform;
 
-        Sprite wallHSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoWallHorizontal.png"));
-        Sprite wallVSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoWallVertical.png"));
-
         float halfW = ARENA_WIDTH * 0.5f;     // 19
         float halfH = ARENA_HEIGHT * 0.5f;    // 12
-        float wallCenterDistX = halfW + (WALL_THICKNESS * 0.5f); // 19 + 1 = 20
-        float wallCenterDistY = halfH + (WALL_THICKNESS * 0.5f); // 12 + 1 = 13
+        float wallCenterDistX = halfW + (WALL_THICKNESS * 0.5f); // 20
+        float wallCenterDistY = halfH + (WALL_THICKNESS * 0.5f); // 13
 
-        // Wall Top (Ngang)
-        CreateWallObject("Wall_Top", wallsRoot.transform,
+        CreateInvisibleWall("Wall_Top", wallsRoot.transform,
             new Vector3(0, wallCenterDistY, 0),
-            new Vector2(ARENA_WIDTH + (WALL_THICKNESS * 2f), WALL_THICKNESS),
-            wallHSprite, 15);
+            new Vector2(ARENA_WIDTH + (WALL_THICKNESS * 2f), WALL_THICKNESS));
 
-        // Wall Bottom (Ngang)
-        CreateWallObject("Wall_Bottom", wallsRoot.transform,
+        CreateInvisibleWall("Wall_Bottom", wallsRoot.transform,
             new Vector3(0, -wallCenterDistY, 0),
-            new Vector2(ARENA_WIDTH + (WALL_THICKNESS * 2f), WALL_THICKNESS),
-            wallHSprite, 15);
+            new Vector2(ARENA_WIDTH + (WALL_THICKNESS * 2f), WALL_THICKNESS));
 
-        // Wall Left (Dọc - dài 28 units để nối liền góc trên dưới)
-        CreateWallObject("Wall_Left", wallsRoot.transform,
+        CreateInvisibleWall("Wall_Left", wallsRoot.transform,
             new Vector3(-wallCenterDistX, 0, 0),
-            new Vector2(WALL_THICKNESS, ARENA_HEIGHT + (WALL_THICKNESS * 2f)),
-            wallVSprite, 15);
+            new Vector2(WALL_THICKNESS, ARENA_HEIGHT + (WALL_THICKNESS * 2f)));
 
-        // Wall Right (Dọc - dài 28 units để nối liền góc trên dưới)
-        CreateWallObject("Wall_Right", wallsRoot.transform,
+        CreateInvisibleWall("Wall_Right", wallsRoot.transform,
             new Vector3(wallCenterDistX, 0, 0),
-            new Vector2(WALL_THICKNESS, ARENA_HEIGHT + (WALL_THICKNESS * 2f)),
-            wallVSprite, 15);
+            new Vector2(WALL_THICKNESS, ARENA_HEIGHT + (WALL_THICKNESS * 2f)));
 
-        // 4. Corners Root (4 trụ cột mốc đặt chuẩn xác tại 4 góc giao nhau của tường)
+        // 4. Corners Root
         GameObject cornersRoot = new GameObject("Corners");
         cornersRoot.transform.SetParent(root.transform, false);
+        cornersRoot.SetActive(false);
         arenaScript.cornersRoot = cornersRoot.transform;
 
-        Sprite cornerSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Path.Combine(SPRITES_FOLDER, "BrotatoCornerPost.png"));
-        CreateCornerObject("Corner_TL", cornersRoot.transform, new Vector3(-wallCenterDistX, wallCenterDistY, 0), cornerSprite);
-        CreateCornerObject("Corner_TR", cornersRoot.transform, new Vector3(wallCenterDistX, wallCenterDistY, 0), cornerSprite);
-        CreateCornerObject("Corner_BL", cornersRoot.transform, new Vector3(-wallCenterDistX, -wallCenterDistY, 0), cornerSprite);
-        CreateCornerObject("Corner_BR", cornersRoot.transform, new Vector3(wallCenterDistX, -wallCenterDistY, 0), cornerSprite);
-
-        // Lưu Prefab
         PrefabUtility.SaveAsPrefabAsset(root, PREFAB_PATH);
         Object.DestroyImmediate(root);
 
         Debug.Log($"[BROTATO MAP] Đã tạo Prefab thành công tại: {PREFAB_PATH}");
     }
 
-    private static void CreateWallObject(string name, Transform parent, Vector3 localPos, Vector2 size, Sprite sprite, int sortingOrder)
+    private static void CreateInvisibleWall(string name, Transform parent, Vector3 localPos, Vector2 size)
     {
         GameObject wallObj = new GameObject(name);
         wallObj.transform.SetParent(parent, false);
         wallObj.transform.localPosition = localPos;
         wallObj.layer = LayerMask.NameToLayer("Default");
 
-        SpriteRenderer sr = wallObj.AddComponent<SpriteRenderer>();
-        sr.sprite = sprite;
-        sr.sortingOrder = sortingOrder;
-
         BoxCollider2D collider = wallObj.AddComponent<BoxCollider2D>();
         collider.size = size;
         collider.offset = Vector2.zero;
     }
 
-    private static void CreateCornerObject(string name, Transform parent, Vector3 localPos, Sprite sprite)
-    {
-        GameObject cornerObj = new GameObject(name);
-        cornerObj.transform.SetParent(parent, false);
-        cornerObj.transform.localPosition = localPos;
-
-        SpriteRenderer sr = cornerObj.AddComponent<SpriteRenderer>();
-        sr.sprite = sprite;
-        sr.sortingOrder = 18; // Nằm trên tường một chút để tạo độ sâu
-    }
-
     #region Procedural Texture Generators
 
-    /// <summary>
-    /// Tạo texture mặt sàn đấu trường đặc trưng phong cách Brotato:
-    /// Nền đất ấm màu be nâu, các hạt sỏi mịn, vạch ranh giới đấu trường hazard bo xung quanh,
-    /// hoa văn nứt đất nhẹ và viền bóng đổ.
-    /// </summary>
-    private static void GenerateFloorTexture(string filePath)
+    private static float CalcJaggedDist(int x, int y, int width, int height)
     {
-        int width = Mathf.RoundToInt(ARENA_WIDTH * PPU);   // 38 * 32 = 1216
-        int height = Mathf.RoundToInt(ARENA_HEIGHT * PPU); // 24 * 32 = 768
+        float jagLeft = Mathf.Sin(y * 0.03f) * 4.5f + Mathf.Sin(y * 0.09f + 1.2f) * 3.0f + ((y % 5) - 2) * 0.8f + 8.0f;
+        float jagRight = Mathf.Sin(y * 0.03f + 2.5f) * 4.5f + Mathf.Sin(y * 0.09f + 3.8f) * 3.0f + (((y + 2) % 5) - 2) * 0.8f + 8.0f;
+        float jagBottom = Mathf.Sin(x * 0.03f) * 4.5f + Mathf.Sin(x * 0.09f + 2.1f) * 3.0f + ((x % 5) - 2) * 0.8f + 8.0f;
+        float jagTop = Mathf.Sin(x * 0.03f + 1.7f) * 4.5f + Mathf.Sin(x * 0.09f + 0.4f) * 3.0f + (((x + 3) % 5) - 2) * 0.8f + 8.0f;
 
-        Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        float dLeft = x - jagLeft;
+        float dRight = (width - 1 - jagRight) - x;
+        float dBottom = y - jagBottom;
+        float dTop = (height - 1 - jagTop) - y;
 
-        Color baseDirt = new Color(0.76f, 0.58f, 0.38f);      // Đất cát ấm sáng (#C29461)
-        Color midDirt = new Color(0.68f, 0.50f, 0.32f);       // Đất trung tính (#AE8052)
-        Color darkDirt = new Color(0.55f, 0.38f, 0.22f);      // Đất bóng râm (#8C6138)
-        Color hazardLine = new Color(0.65f, 0.22f, 0.16f);    // Vạch đỏ ranh giới (#A63829)
-        Color hazardGlow = new Color(0.92f, 0.80f, 0.55f);    // Vạch vàng cát (#EBCB8C)
-        Color pebbleColor = new Color(0.42f, 0.34f, 0.28f);   // Sỏi đá vụn (#6B5747)
+        float d = Mathf.Min(Mathf.Min(dLeft, dRight), Mathf.Min(dBottom, dTop));
 
-        int borderMargin = PPU; // Cách mép 1 unit (32 pixels)
-
-        for (int y = 0; y < height; y++)
+        if (dLeft < 20f && dBottom < 20f)
         {
-            float ny = (float)y / height;
-            for (int x = 0; x < width; x++)
-            {
-                float nx = (float)x / width;
-
-                // 1. Nhiễu Perlin nhiều tầng tạo kết cấu bề mặt đất cát tự nhiên
-                float n1 = Mathf.PerlinNoise(nx * 8f, ny * 6f);
-                float n2 = Mathf.PerlinNoise(nx * 24f + 3.1f, ny * 18f + 5.7f) * 0.3f;
-                float n3 = Mathf.PerlinNoise(nx * 60f + 12.3f, ny * 45f + 9.1f) * 0.15f;
-                float noiseVal = n1 + n2 + n3;
-
-                // 2. Trộn màu đất chính
-                Color c = Color.Lerp(midDirt, baseDirt, noiseVal);
-
-                // 3. Vignette nhẹ ở 4 góc và viền sát mép sàn để tạo cảm giác sâu
-                float distFromCenter = Vector2.Distance(new Vector2(nx, ny), new Vector2(0.5f, 0.5f));
-                c = Color.Lerp(c, darkDirt, Mathf.Clamp01((distFromCenter - 0.35f) * 0.8f));
-
-                // 4. Lưới ô mờ nhẹ (Grid tiles mỗi 1 unit = 32px) như sàn đấu Brotato
-                if (x % PPU == 0 || y % PPU == 0)
-                {
-                    c = Color.Lerp(c, darkDirt, 0.12f);
-                }
-
-                // 5. Vạch ranh giới đấu trường (Arena Hazard Boundary) cách bờ tường 1 unit
-                bool onHazardRed = (x >= borderMargin && x <= borderMargin + 5) ||
-                                  (x <= width - borderMargin && x >= width - borderMargin - 5) ||
-                                  (y >= borderMargin && y <= borderMargin + 5) ||
-                                  (y <= height - borderMargin && y >= height - borderMargin - 5);
-
-                bool onHazardInnerGold = (x == borderMargin + 8 || x == width - borderMargin - 8 ||
-                                         y == borderMargin + 8 || y == height - borderMargin - 8);
-
-                if (onHazardRed && x >= borderMargin && x <= width - borderMargin && y >= borderMargin && y <= height - borderMargin)
-                {
-                    // Vạch nét đứt phong cách cảnh báo hazard
-                    int dash = ((x + y) / 12) % 2;
-                    c = dash == 0 ? hazardLine : hazardGlow;
-                }
-                else if (onHazardInnerGold && x >= borderMargin + 8 && x <= width - borderMargin - 8 && y >= borderMargin + 8 && y <= height - borderMargin - 8)
-                {
-                    c = Color.Lerp(c, hazardGlow, 0.5f);
-                }
-
-                // 6. Điểm xuyết các đốm sỏi cát ngẫu nhiên
-                float pebbleNoise = Mathf.PerlinNoise(nx * 120f + 55f, ny * 120f + 88f);
-                if (pebbleNoise > 0.82f && !onHazardRed)
-                {
-                    c = Color.Lerp(c, pebbleColor, 0.6f);
-                }
-
-                tex.SetPixel(x, y, c);
-            }
+            float cx = 20f - dLeft; float cy = 20f - dBottom;
+            d = 20f - Mathf.Sqrt(cx * cx + cy * cy);
         }
-
-        tex.Apply();
-        File.WriteAllBytes(filePath, tex.EncodeToPNG());
-        Object.DestroyImmediate(tex);
+        else if (dRight < 20f && dBottom < 20f)
+        {
+            float cx = 20f - dRight; float cy = 20f - dBottom;
+            d = 20f - Mathf.Sqrt(cx * cx + cy * cy);
+        }
+        else if (dLeft < 20f && dTop < 20f)
+        {
+            float cx = 20f - dLeft; float cy = 20f - dTop;
+            d = 20f - Mathf.Sqrt(cx * cx + cy * cy);
+        }
+        else if (dRight < 20f && dTop < 20f)
+        {
+            float cx = 20f - dRight; float cy = 20f - dTop;
+            d = 20f - Mathf.Sqrt(cx * cx + cy * cy);
+        }
+        return d;
     }
 
-    /// <summary>
-    /// Tạo texture tường ngang (Top & Bottom) với rào chắn đá bê tông và vạch sọc cảnh báo hazard
-    /// </summary>
-    private static void GenerateWallHorizontalTexture(string filePath)
+    private static void GenerateDefaultFloorTexture(string filePath)
     {
-        int width = Mathf.RoundToInt((ARENA_WIDTH + WALL_THICKNESS * 2f) * PPU); // (38 + 4) * 32 = 1344
-        int height = Mathf.RoundToInt(WALL_THICKNESS * PPU);                    // 2 * 32 = 64
+        int width = Mathf.RoundToInt(ARENA_WIDTH * PPU);
+        int height = Mathf.RoundToInt(ARENA_HEIGHT * PPU);
 
         Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
-
-        Color stoneDark = new Color(0.24f, 0.18f, 0.14f);       // Nền đá sẫm (#3D2E24)
-        Color stoneMid = new Color(0.38f, 0.28f, 0.22f);        // Thân đá (#614738)
-        Color stoneHighlight = new Color(0.55f, 0.42f, 0.33f);  // Gờ vát sáng (#8C6B54)
-        Color hazardYellow = new Color(0.88f, 0.72f, 0.18f);    // Vàng sọc cảnh báo (#E0B82E)
-        Color hazardBlack = new Color(0.15f, 0.12f, 0.10f);     // Đen sọc cảnh báo (#261F1A)
-        Color shadowColor = new Color(0f, 0f, 0f, 0.55f);       // Bóng đổ chân tường
-
-        for (int y = 0; y < height; y++)
-        {
-            float ny = (float)y / height;
-            for (int x = 0; x < width; x++)
-            {
-                Color c = stoneMid;
-
-                // Gờ vát trên cùng phản quang
-                if (y >= height - 6)
-                {
-                    c = stoneHighlight;
-                }
-                // Dải vạch sọc cảnh báo Hazard ở giữa thân tường (từ y=18 đến y=46)
-                else if (y >= 18 && y <= 46)
-                {
-                    int stripe = ((x + y) / 16) % 2;
-                    c = stripe == 0 ? hazardYellow : hazardBlack;
-                }
-                // Thân đá phía dưới
-                else if (y > 8)
-                {
-                    float noise = Mathf.PerlinNoise((float)x * 0.15f, (float)y * 0.15f);
-                    c = Color.Lerp(stoneDark, stoneMid, noise);
-                }
-                // Chân tường bóng đổ mềm phủ xuống mặt sàn
-                else
-                {
-                    float shadowAlpha = (8 - y) / 8f;
-                    c = Color.Lerp(stoneDark, shadowColor, shadowAlpha);
-                }
-
-                // Đường rãnh ghép giữa các khối đá mỗi 64 pixels (2 units)
-                if (x % 64 == 0 || x % 64 == 1)
-                {
-                    c = Color.Lerp(c, stoneDark, 0.7f);
-                }
-
-                tex.SetPixel(x, y, c);
-            }
-        }
-
-        tex.Apply();
-        File.WriteAllBytes(filePath, tex.EncodeToPNG());
-        Object.DestroyImmediate(tex);
-    }
-
-    /// <summary>
-    /// Tạo texture tường dọc (Left & Right) phủ trọn 28 units để giao khít với tường ngang
-    /// </summary>
-    private static void GenerateWallVerticalTexture(string filePath)
-    {
-        int width = Mathf.RoundToInt(WALL_THICKNESS * PPU);                              // 2 * 32 = 64
-        int height = Mathf.RoundToInt((ARENA_HEIGHT + WALL_THICKNESS * 2f) * PPU);       // 28 * 32 = 896
-
-        Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
-
-        Color stoneDark = new Color(0.24f, 0.18f, 0.14f);
-        Color stoneMid = new Color(0.38f, 0.28f, 0.22f);
-        Color stoneHighlight = new Color(0.55f, 0.42f, 0.33f);
-        Color hazardYellow = new Color(0.88f, 0.72f, 0.18f);
-        Color hazardBlack = new Color(0.15f, 0.12f, 0.10f);
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                Color c = stoneMid;
-
-                // Gờ vát mép ngoài
-                if (x <= 6 || x >= width - 6)
-                {
-                    c = stoneHighlight;
-                }
-                // Dải vạch sọc cảnh báo ở giữa
-                else if (x >= 18 && x <= 46)
-                {
-                    int stripe = ((x + y) / 16) % 2;
-                    c = stripe == 0 ? hazardYellow : hazardBlack;
-                }
-                else
-                {
-                    float noise = Mathf.PerlinNoise((float)x * 0.15f, (float)y * 0.15f);
-                    c = Color.Lerp(stoneDark, stoneMid, noise);
-                }
-
-                // Rãnh đá ghép ngang mỗi 64 pixels
-                if (y % 64 == 0 || y % 64 == 1)
-                {
-                    c = Color.Lerp(c, stoneDark, 0.7f);
-                }
-
-                tex.SetPixel(x, y, c);
-            }
-        }
-
-        tex.Apply();
-        File.WriteAllBytes(filePath, tex.EncodeToPNG());
-        Object.DestroyImmediate(tex);
-    }
-
-    /// <summary>
-    /// Tạo texture Trụ Cột mốc 4 góc đấu trường (Corner Post)
-    /// </summary>
-    private static void GenerateCornerPostTexture(string filePath)
-    {
-        int size = Mathf.RoundToInt(WALL_THICKNESS * 1.8f * PPU); // ~115 px (3.6 units)
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-
-        Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
-        float radius = size * 0.46f;
-
-        Color pillarBase = new Color(0.28f, 0.20f, 0.15f);
-        Color pillarTop = new Color(0.52f, 0.40f, 0.30f);
-        Color lightBeacon = new Color(0.95f, 0.25f, 0.20f); // Đèn đỏ beacon trên đỉnh
+        Color baseDirt = new Color(119f / 255f, 101f / 255f, 87f / 255f);
+        Color darkRim = new Color(14f / 255f, 11f / 255f, 9f / 255f);
+        Color edgeShadow = new Color(78f / 255f, 64f / 255f, 54f / 255f);
         Color clear = new Color(0, 0, 0, 0);
 
-        for (int y = 0; y < size; y++)
+        for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < size; x++)
+            for (int x = 0; x < width; x++)
             {
-                float dist = Vector2.Distance(new Vector2(x, y), center);
-                if (dist > radius)
-                {
-                    tex.SetPixel(x, y, clear);
-                }
+                float d = CalcJaggedDist(x, y, width, height);
+                if (d < 0f) tex.SetPixel(x, y, clear);
+                else if (d < 2.0f) tex.SetPixel(x, y, darkRim);
+                else if (d < 10.0f) tex.SetPixel(x, y, Color.Lerp(edgeShadow, baseDirt, (d - 2f) / 8f));
                 else
                 {
-                    // Đèn tín hiệu ở tâm
-                    if (dist < radius * 0.35f)
-                    {
-                        float beaconFactor = 1f - (dist / (radius * 0.35f));
-                        tex.SetPixel(x, y, Color.Lerp(lightBeacon, Color.white, beaconFactor * 0.5f));
-                    }
-                    // Thân trụ đa giác
-                    else
-                    {
-                        float angle = Mathf.Atan2(y - center.y, x - center.x);
-                        float shade = (Mathf.Sin(angle * 4f) + 1f) * 0.5f;
-                        Color c = Color.Lerp(pillarBase, pillarTop, shade);
-
-                        // Viền ngoài
-                        if (dist >= radius - 3f)
-                        {
-                            c = new Color(0.18f, 0.12f, 0.08f);
-                        }
-                        tex.SetPixel(x, y, c);
-                    }
+                    float n = (Mathf.Sin(x * 0.015f + y * 0.012f) * 2.2f + Mathf.Cos(x * 0.035f - y * 0.028f) * 1.8f) / 255f;
+                    tex.SetPixel(x, y, new Color(Mathf.Clamp01(baseDirt.r + n), Mathf.Clamp01(baseDirt.g + n), Mathf.Clamp01(baseDirt.b + n), 1f));
                 }
             }
         }
-
         tex.Apply();
         File.WriteAllBytes(filePath, tex.EncodeToPNG());
         Object.DestroyImmediate(tex);
     }
 
-    /// <summary>
-    /// Tạo texture nền hư không bao quanh đấu trường (Outer Void)
-    /// Tông màu tím đen huyền bí, tương phản cao để tôn vinh sàn đấu chính rực rỡ
-    /// </summary>
+    private static void GenerateForestFloorTexture(string filePath)
+    {
+        // Đồng bộ logic tạo map rừng
+        int width = 1216, height = 768;
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        Color baseGround = new Color(74f / 255f, 84f / 255f, 60f / 255f);
+        Color darkRim = new Color(18f / 255f, 22f / 255f, 14f / 255f);
+        Color edgeShadow = new Color(42f / 255f, 48f / 255f, 34f / 255f);
+        Color clear = new Color(0, 0, 0, 0);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float d = CalcJaggedDist(x, y, width, height);
+                if (d < 0f) tex.SetPixel(x, y, clear);
+                else if (d < 2.0f) tex.SetPixel(x, y, darkRim);
+                else if (d < 12.0f) tex.SetPixel(x, y, Color.Lerp(edgeShadow, baseGround, (d - 2f) / 10f));
+                else
+                {
+                    float n = (Mathf.Sin(x * 0.015f + y * 0.012f) * 2.5f + Mathf.Cos(x * 0.035f - y * 0.028f) * 2.0f) / 255f;
+                    tex.SetPixel(x, y, new Color(Mathf.Clamp01(baseGround.r + n), Mathf.Clamp01(baseGround.g + n), Mathf.Clamp01(baseGround.b + n), 1f));
+                }
+            }
+        }
+        tex.Apply();
+        File.WriteAllBytes(filePath, tex.EncodeToPNG());
+        Object.DestroyImmediate(tex);
+    }
+
+    private static void GenerateVolcanoFloorTexture(string filePath)
+    {
+        int width = 1216, height = 768;
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        Color baseGround = new Color(95f / 255f, 77f / 255f, 77f / 255f);
+        Color darkRim = new Color(26f / 255f, 16f / 255f, 14f / 255f);
+        Color edgeShadow = new Color(52f / 255f, 40f / 255f, 40f / 255f);
+        Color clear = new Color(0, 0, 0, 0);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float d = CalcJaggedDist(x, y, width, height);
+                if (d < 0f) tex.SetPixel(x, y, clear);
+                else if (d < 2.0f) tex.SetPixel(x, y, darkRim);
+                else if (d < 12.0f) tex.SetPixel(x, y, Color.Lerp(edgeShadow, baseGround, (d - 2f) / 10f));
+                else
+                {
+                    float n = (Mathf.Sin(x * 0.015f + y * 0.012f) * 2.8f + Mathf.Cos(x * 0.035f - y * 0.028f) * 2.2f) / 255f;
+                    tex.SetPixel(x, y, new Color(Mathf.Clamp01(baseGround.r + n), Mathf.Clamp01(baseGround.g + n * 0.8f), Mathf.Clamp01(baseGround.b + n * 0.8f), 1f));
+                }
+            }
+        }
+        tex.Apply();
+        File.WriteAllBytes(filePath, tex.EncodeToPNG());
+        Object.DestroyImmediate(tex);
+    }
+
+    private static void GenerateVoidFloorTexture(string filePath)
+    {
+        int width = 1216, height = 768;
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        Color baseGround = new Color(40f / 255f, 32f / 255f, 83f / 255f);
+        Color darkRim = new Color(12f / 255f, 8f / 255f, 26f / 255f);
+        Color edgeShadow = new Color(24f / 255f, 18f / 255f, 52f / 255f);
+        Color clear = new Color(0, 0, 0, 0);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float d = CalcJaggedDist(x, y, width, height);
+                if (d < 0f) tex.SetPixel(x, y, clear);
+                else if (d < 2.0f) tex.SetPixel(x, y, darkRim);
+                else if (d < 12.0f) tex.SetPixel(x, y, Color.Lerp(edgeShadow, baseGround, (d - 2f) / 10f));
+                else
+                {
+                    float n = (Mathf.Sin(x * 0.015f + y * 0.012f) * 2.5f + Mathf.Cos(x * 0.035f - y * 0.028f) * 2.0f) / 255f;
+                    tex.SetPixel(x, y, new Color(Mathf.Clamp01(baseGround.r + n * 0.8f), Mathf.Clamp01(baseGround.g + n * 0.6f), Mathf.Clamp01(baseGround.b + n * 1.2f), 1f));
+                }
+            }
+        }
+        tex.Apply();
+        File.WriteAllBytes(filePath, tex.EncodeToPNG());
+        Object.DestroyImmediate(tex);
+    }
+
     private static void GenerateOuterVoidTexture(string filePath)
     {
         int size = 256;
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] pixels = new Color[size * size];
+        for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.black;
+        tex.SetPixels(pixels);
+        tex.Apply();
+        File.WriteAllBytes(filePath, tex.EncodeToPNG());
+        Object.DestroyImmediate(tex);
+    }
 
-        Color voidBase = new Color(0.08f, 0.06f, 0.10f);     // Tím than tối (#14101A)
-        Color voidPattern = new Color(0.12f, 0.09f, 0.15f);  // Đốm đá hư không (#1F1726)
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float n = Mathf.PerlinNoise((float)x / 32f, (float)y / 32f);
-                Color c = Color.Lerp(voidBase, voidPattern, n);
-                tex.SetPixel(x, y, c);
-            }
-        }
-
+    private static void GenerateCosmicOuterVoidTexture(string filePath)
+    {
+        int size = 512;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color spaceBase = new Color(12f / 255f, 8f / 255f, 28f / 255f);
+        Color[] pixels = new Color[size * size];
+        for (int i = 0; i < pixels.Length; i++) pixels[i] = spaceBase;
+        tex.SetPixels(pixels);
         tex.Apply();
         File.WriteAllBytes(filePath, tex.EncodeToPNG());
         Object.DestroyImmediate(tex);
@@ -544,7 +415,7 @@ public static class BrotatoMapBuilder
         {
             importer.textureType = TextureImporterType.Sprite;
             importer.spritePixelsPerUnit = ppu;
-            importer.filterMode = FilterMode.Bilinear;
+            importer.filterMode = FilterMode.Point;
             importer.wrapMode = wrapMode;
             importer.alphaIsTransparency = true;
             importer.mipmapEnabled = false;
