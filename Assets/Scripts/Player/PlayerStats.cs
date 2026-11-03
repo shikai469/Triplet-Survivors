@@ -5,6 +5,7 @@ using TMPro;
 public class PlayerStats : MonoBehaviour
 {
     public static PlayerStats Instance;
+    public static event System.Action<int> OnPlayerLevelUp;
     private bool isLevelingUp = false;
 
     [Header("XP & Level Settings")]
@@ -139,6 +140,8 @@ public class PlayerStats : MonoBehaviour
         {
             levelText.text = "Lv. " + currentLevel;
         }
+
+        OnPlayerLevelUp?.Invoke(currentLevel);
 
         if (UpgradeManager.Instance != null)
         {

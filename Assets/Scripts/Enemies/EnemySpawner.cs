@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
@@ -8,8 +9,24 @@ public class EnemySpawner : MonoBehaviour
     public GameObject[] enemyPrefabs; // Danh sách các loại quái để spawn ngẫu nhiên (nếu có)
     public Transform player;
     public float spawnInterval = 1.0f;
-    public float spawnDistance = 14.0f; // Bán kính ngoài mép camera
+    public float spawnDistance = 14.0f; // Bán kính chuẩn ngoài mép camera
     public int maxEnemies = 40;
+
+    [Header("Distance & Arena Bounds Tuning")]
+    [Tooltip("Khoảng cách spawn tối thiểu so với người chơi (đảm bảo luôn ở xa ngoài tầm nhìn)")]
+    public float spawnDistanceMin = 12.0f;
+    [Tooltip("Khoảng cách spawn tối đa xung quanh người chơi")]
+    public float spawnDistanceMax = 15.5f;
+    [Tooltip("Khoảng cách tuyệt đối quái phải cách xa người chơi khi bị tường arena kẹp")]
+    public float minSafeDistance = 9.5f;
+
+    [Header("Level Scaling (Quái spawn nhiều dần theo cấp độ)")]
+    [Tooltip("Trần quái tối đa an toàn để giữ vững 60 FPS trên mobile")]
+    public int maxEnemiesCap = 85;
+    [Tooltip("Thời gian giãn cách tối thiểu giữa các đợt spawn")]
+    public float minSpawnInterval = 0.35f;
+    [Tooltip("Số quái tối đa sinh ra cùng lúc trong 1 nhịp (sẽ được sinh dàn trải qua vài frame)")]
+    public int maxBatchSpawnCount = 4;
 
     [Header("Loot Chest Settings")]
     public GameObject lootChestPrefab;
@@ -39,6 +56,9 @@ public class EnemySpawner : MonoBehaviour
     [Header("Active Difficulty Config")]
     public DifficultyConfig config;
 
+    private float baseSpawnIntervalStored = 1.0f;
+    private int baseMaxEnemiesStored = 40;
+
     void Start()
     {
         if (player == null && PlayerStats.Instance != null)
@@ -52,7 +72,16 @@ public class EnemySpawner : MonoBehaviour
             DifficultyLevel currentDiff = GameDataManager.GetSelectedDifficulty();
             InitializeSpawner(DifficultyConfig.GetDefault(currentDiff));
         }
+        else
+        {
+            baseSpawnIntervalStored = config.baseSpawnInterval > 0 ? config.baseSpawnInterval : spawnInterval;
+            baseMaxEnemiesStored = config.baseMaxEnemies > 0 ? config.baseMaxEnemies : maxEnemies;
+        }
 
+        // 1. Tối ưu hóa cực hạn: Pre-warm sẵn toàn bộ quái vào ObjectPool ngay từ đầu trận (Zero GC lag)
+        PrewarmEnemyPools();
+
+        // 2. Bắt đầu các vòng lặp sinh quái & rương
         StartCoroutine(SpawnRoutine());
         StartCoroutine(SpawnChestRoutine());
         if (enableRingAmbush)
@@ -61,12 +90,51 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Chuẩn bị sẵn một lượng quái trong Object Pool để khi cấp cao quái ra đông không bao giờ bị khựng khung hình.
+    /// </summary>
+    private void PrewarmEnemyPools()
+    {
+        if (ObjectPool.Instance == null) return;
+
+        if (enemyPrefab != null)
+        {
+            ObjectPool.Instance.Prewarm(enemyPrefab, 20);
+        }
+
+        if (enemyPrefabs != null && enemyPrefabs.Length > 0)
+        {
+            for (int i = 0; i < enemyPrefabs.Length; i++)
+            {
+                if (enemyPrefabs[i] != null)
+                {
+                    ObjectPool.Instance.Prewarm(enemyPrefabs[i], 18);
+                }
+            }
+        }
+
+        if (fireSpiritPrefab != null)
+        {
+            ObjectPool.Instance.Prewarm(fireSpiritPrefab, 20);
+        }
+
+        if (lootChestPrefab != null)
+        {
+            ObjectPool.Instance.Prewarm(lootChestPrefab, 3);
+        }
+    }
+
     public void InitializeSpawner(DifficultyConfig difficultyConfig)
     {
         config = difficultyConfig;
-        spawnInterval = config.baseSpawnInterval;
-        maxEnemies = config.baseMaxEnemies;
-        Debug.Log($"[SPAWNER] Nạp cấu hình: {config.difficultyName} | Interval: {spawnInterval}s | Max: {maxEnemies}");
+        baseSpawnIntervalStored = config.baseSpawnInterval;
+        baseMaxEnemiesStored = config.baseMaxEnemies;
+        spawnInterval = baseSpawnIntervalStored;
+        maxEnemies = baseMaxEnemiesStored;
+        if (config.maxEnemiesCap > 0) maxEnemiesCap = config.maxEnemiesCap;
+        if (config.minSpawnInterval > 0) minSpawnInterval = config.minSpawnInterval;
+
+        Debug.Log($"[SPAWNER] Nạp cấu hình: {config.difficultyName} | Interval: {spawnInterval}s | BaseMax: {maxEnemies} | Cap: {maxEnemiesCap}");
     }
 
     void Update()
@@ -82,16 +150,18 @@ public class EnemySpawner : MonoBehaviour
             currentWave = 1 + Mathf.FloorToInt(gameTime / 30f);
         }
 
-        // Tăng tiến độ khó theo thời gian thực (Đặc biệt cho Endless hoặc late wave)
-        if (config != null && config.isEndless)
-        {
-            // Rút ngắn dần thời gian chờ spawn theo từng phút
-            float minutesPassed = gameTime / 60f;
-            spawnInterval = Mathf.Max(config.minSpawnInterval, config.baseSpawnInterval - (minutesPassed * 0.08f));
+        // Lấy cấp độ hiện tại của người chơi
+        int playerLevel = (PlayerStats.Instance != null) ? PlayerStats.Instance.currentLevel : 1;
 
-            // Nới rộng trần quái tối đa trên sân
-            maxEnemies = Mathf.Min(config.maxEnemiesCap, config.baseMaxEnemies + Mathf.FloorToInt(minutesPassed * 12));
-        }
+        // --- CƠ CHẾ QUÁI SPAWN NHIỀU DẦN THEO CẤP ĐỘ ---
+        // 1. Tần suất spawn (spawnInterval) giảm dần khi cấp độ người chơi tăng
+        float levelFactor = 1.0f + (playerLevel - 1) * 0.06f + (currentWave - 1) * 0.04f;
+        float calculatedInterval = baseSpawnIntervalStored / levelFactor;
+        spawnInterval = Mathf.Max(minSpawnInterval, calculatedInterval);
+
+        // 2. Trần số lượng quái sống cùng lúc (maxEnemies) tăng dần theo cấp độ
+        int calculatedMax = baseMaxEnemiesStored + (playerLevel - 1) * 3 + (currentWave - 1) * 2;
+        maxEnemies = Mathf.Min(maxEnemiesCap, calculatedMax);
     }
 
     IEnumerator SpawnRoutine()
@@ -99,6 +169,12 @@ public class EnemySpawner : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(spawnInterval);
+
+            // Bảo vệ 60 FPS: Nếu thiết bị có hiện tượng giật cục frame time cao, tạm nghỉ nhẹ để hồi FPS
+            if (Time.unscaledDeltaTime > 0.04f)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
 
             if (player == null)
             {
@@ -109,13 +185,57 @@ public class EnemySpawner : MonoBehaviour
             int currentEnemyCount = EnemyHealth.ActiveEnemies.Count;
             if (currentEnemyCount >= maxEnemies) continue;
 
-            SpawnEnemy();
+            int playerLevel = (PlayerStats.Instance != null) ? PlayerStats.Instance.currentLevel : 1;
+            int batchCount = CalculateBatchCount(playerLevel, currentWave);
+            int allowedToSpawn = Mathf.Min(batchCount, maxEnemies - currentEnemyCount);
+
+            if (allowedToSpawn > 1)
+            {
+                // Sinh quái dàn trải qua các frame (Staggered Spawning) để chống giật lag
+                StartCoroutine(SpawnBatchStaggered(allowedToSpawn, playerLevel));
+            }
+            else if (allowedToSpawn == 1)
+            {
+                SpawnEnemy(playerLevel);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tính toán số lượng quái sinh ra mỗi nhịp tăng dần theo cấp độ người chơi.
+    /// </summary>
+    private int CalculateBatchCount(int level, int wave)
+    {
+        int batch = 1;
+        if (level >= 15 || wave >= 8) batch = 4;
+        else if (level >= 10 || wave >= 5) batch = 3;
+        else if (level >= 5 || wave >= 3) batch = (Random.value < 0.5f) ? 2 : 1;
+        else batch = 1;
+
+        // Cơ hội ngẫu nhiên thêm 1 quái khi người chơi đạt cấp cao
+        if (level >= 8 && Random.value < 0.35f) batch++;
+
+        return Mathf.Clamp(batch, 1, maxBatchSpawnCount);
+    }
+
+    /// <summary>
+    /// Sinh quái dàn trải cách nhau một khoảng thời gian cực ngắn (60ms) để giữ vững 60 FPS mượt mà.
+    /// </summary>
+    private IEnumerator SpawnBatchStaggered(int count, int playerLevel)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (EnemyHealth.ActiveEnemies.Count < maxEnemies)
+            {
+                SpawnEnemy(playerLevel);
+            }
+            yield return new WaitForSeconds(0.06f);
         }
     }
 
     IEnumerator SpawnChestRoutine()
     {
-        // 1. Chờ nhịp rương đầu tiên (5 giây) để bạn test thấy ngay lập tức
+        // 1. Chờ nhịp rương đầu tiên (5 giây) để test thấy ngay lập tức
         yield return new WaitForSeconds(chestFirstSpawnDelay);
 
         if (player == null && PlayerStats.Instance != null) player = PlayerStats.Instance.transform;
@@ -136,61 +256,134 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    void SpawnEnemy()
+    /// <summary>
+    /// Tính toán vị trí sinh quái xung quanh người chơi ở khoảng cách xa (ngoài mép camera).
+    /// Đảm bảo dù người chơi đứng ở góc hoặc sát tường sân đấu, quái luôn sinh từ xa chạy lại, không bao giờ xuất hiện đè lên người chơi.
+    /// </summary>
+    public Vector3 GetSpawnPositionAroundPlayer(Transform targetPlayer)
     {
-        // 1. Tính toán vị trí sinh quái
-        float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        Vector3 spawnOffset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * spawnDistance;
-        Vector3 spawnPos;
+        Vector3 playerPos = targetPlayer.position;
 
         if (BrotatoArena.Instance != null)
         {
-            // Chuẩn phong cách Brotato: 75% quái tràn vào từ 4 cạnh mép đấu trường, 25% sinh rải rác quanh người chơi (đã được clamp an toàn)
-            if (Random.value < 0.75f)
+            Vector3 arenaCenter = BrotatoArena.Instance.transform.position;
+            Vector2 dirToCenter = ((Vector2)(arenaCenter - playerPos)).normalized;
+
+            Vector3 bestPos = Vector3.zero;
+            float maxValidDistance = -1f;
+
+            // Thử các góc khác nhau xung quanh người chơi
+            for (int attempt = 0; attempt < 8; attempt++)
             {
-                spawnPos = BrotatoArena.Instance.GetBorderSpawnPosition(edgeMargin: 1.0f);
+                float angle;
+                // Nếu người chơi ở xa trung tâm (>5m), ưu tiên góc hướng về phần sân rộng / trung tâm
+                if (attempt < 4 && dirToCenter.sqrMagnitude > 0.01f && (playerPos - arenaCenter).magnitude > 5f)
+                {
+                    float centerAngle = Mathf.Atan2(dirToCenter.y, dirToCenter.x) * Mathf.Rad2Deg;
+                    angle = (centerAngle + Random.Range(-65f, 65f)) * Mathf.Deg2Rad;
+                }
+                else
+                {
+                    angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+                }
+
+                float dist = Random.Range(spawnDistanceMin, spawnDistanceMax);
+                Vector3 rawPos = playerPos + new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * dist;
+                Vector3 candidate = BrotatoArena.Instance.ClampPosition(rawPos, padding: 1.0f);
+                candidate.z = 0f;
+
+                float distFromPlayer = Vector2.Distance(playerPos, candidate);
+                if (distFromPlayer >= minSafeDistance)
+                {
+                    return candidate;
+                }
+
+                if (distFromPlayer > maxValidDistance)
+                {
+                    maxValidDistance = distFromPlayer;
+                    bestPos = candidate;
+                }
             }
-            else
-            {
-                spawnPos = BrotatoArena.Instance.ClampPosition(player.position + spawnOffset, padding: 1.2f);
-            }
+
+            // Nếu người chơi đứng kẹt sát góc tường, chọn vị trí xa người chơi nhất tìm được
+            if (maxValidDistance > 0f) return bestPos;
+
+            // Fallback: Lấy vị trí mép đấu trường xa người chơi
+            return BrotatoArena.Instance.GetBorderSpawnPosition(edgeMargin: 1.0f);
         }
         else
         {
-            spawnPos = player.position + spawnOffset;
+            // Bản đồ mở: Sinh 360 độ xung quanh người chơi ở bán kính xa ngoài tầm nhìn
+            float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+            float dist = Random.Range(spawnDistanceMin, spawnDistanceMax);
+            Vector3 pos = playerPos + new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * dist;
+            pos.z = 0f;
+            return pos;
         }
+    }
 
-        // Chọn Prefab quái
-        GameObject targetPrefab = enemyPrefab;
-        if (enemyPrefabs != null && enemyPrefabs.Length > 0)
+    /// <summary>
+    /// Chọn loại quái thông minh thích ứng theo cấp độ người chơi.
+    /// </summary>
+    private GameObject SelectEnemyPrefabByLevel(int playerLevel)
+    {
+        if (enemyPrefabs == null || enemyPrefabs.Length == 0) return enemyPrefab;
+        if (enemyPrefabs.Length == 1) return enemyPrefabs[0];
+
+        float roll = Random.value;
+        if (playerLevel <= 3)
         {
-            targetPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
+            // Cấp 1-3: 85% quái đầu (cơ bản), 15% quái tiếp theo
+            return (roll < 0.85f || enemyPrefabs.Length < 2) ? enemyPrefabs[0] : enemyPrefabs[1];
         }
+        else if (playerLevel <= 7)
+        {
+            // Cấp 4-7: Quái cơ bản 50%, quái bậc 2 35%, quái mạnh 15%
+            if (roll < 0.50f) return enemyPrefabs[0];
+            if (roll < 0.85f && enemyPrefabs.Length >= 2) return enemyPrefabs[1];
+            return enemyPrefabs[Mathf.Min(2, enemyPrefabs.Length - 1)];
+        }
+        else
+        {
+            // Cấp 8+: Tỷ lệ ngẫu nhiên đều giữa các quái để tạo sự phong phú và áp lực
+            return enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
+        }
+    }
 
+    void SpawnEnemy(int playerLevel = 1)
+    {
+        if (player == null) return;
+
+        // 1. Tính toán vị trí sinh quái xung quanh người chơi ở khoảng cách xa
+        Vector3 spawnPos = GetSpawnPositionAroundPlayer(player);
+
+        // 2. Chọn Prefab quái theo cấp độ
+        GameObject targetPrefab = SelectEnemyPrefabByLevel(playerLevel);
+        if (targetPrefab == null) targetPrefab = enemyPrefab;
         if (targetPrefab == null) return;
 
-        // Spawn từ Object Pool (thay thế Instantiate)
+        // 3. Lấy thực thể từ Object Pool (Zero GC Allocation)
         GameObject enemy = ObjectPool.Instance != null
             ? ObjectPool.Instance.Get(targetPrefab, spawnPos, Quaternion.identity)
             : Instantiate(targetPrefab, spawnPos, Quaternion.identity);
 
-        // 2. Thuật toán cân chỉnh chỉ số quái theo PhanTich_LevelSelectManager_MonsterStats.md
-        // Lấy hiệu ứng lời nguyền Curse (+10% máu quái mỗi cấp Curse)
+        // 4. Thuật toán cân chỉnh chỉ số quái theo Wave, Cấp độ và Lời nguyền (Curse)
         int curseLv = GameDataManager.GetCurseLevel();
         float curseMultiplier = 1.0f + (curseLv * 0.10f);
 
         float baseHpMult = config != null ? config.baseHpMultiplier : 1.0f;
         float growthRate = config != null ? config.hpGrowthPerWave : 0.25f;
-        float finalHpMult = baseHpMult * (1.0f + (currentWave - 1) * growthRate) * curseMultiplier;
+        float levelHpBonus = (playerLevel - 1) * 0.03f; // Tăng nhẹ máu quái theo cấp người chơi
+        float finalHpMult = baseHpMult * (1.0f + (currentWave - 1) * growthRate + levelHpBonus) * curseMultiplier;
 
-        // Tính giáp phẳng (Armor)
+        // Giáp phẳng (Armor)
         int extraArmor = 0;
         if (config != null && currentWave >= config.armorStartWave)
         {
             extraArmor = Mathf.FloorToInt((currentWave - config.armorStartWave + 1) * config.armorGrowthRate);
         }
 
-        // Tính sát thương quái
+        // Sát thương quái
         int minDmg = config != null ? config.minDamage : 8;
         int maxDmg = config != null ? config.maxDamage : 15;
         int rolledDamage = Random.Range(minDmg, maxDmg + 1);
@@ -198,9 +391,9 @@ public class EnemySpawner : MonoBehaviour
         // Tốc độ di chuyển
         float baseSpeed = config != null ? config.baseMoveSpeed : 2.0f;
         float maxSpeed = config != null ? config.maxMoveSpeed : 3.0f;
-        float calculatedSpeed = Mathf.Min(maxSpeed, baseSpeed + (currentWave - 1) * 0.1f);
+        float calculatedSpeed = Mathf.Min(maxSpeed, baseSpeed + (currentWave - 1) * 0.08f + (playerLevel - 1) * 0.02f);
 
-        // Kháng đẩy lùi (50: dễ giật lùi, 35: trung bình, 0: không bị giật lùi)
+        // Kháng đẩy lùi
         float knockback = config != null ? config.knockbackResistance : 50f;
 
         // Gán chỉ số vào thực thể quái
@@ -221,7 +414,6 @@ public class EnemySpawner : MonoBehaviour
     {
         if (player == null) return null;
 
-        // Nếu người chơi chưa tạo Boss Prefab thì bỏ qua an toàn, không báo lỗi
         GameObject bossToSpawn = customBossPrefab;
         if (bossToSpawn == null && config != null) bossToSpawn = config.bossPrefabOverride;
 
@@ -231,7 +423,7 @@ public class EnemySpawner : MonoBehaviour
             return null;
         }
 
-        Vector3 spawnPos = player.position + new Vector3(0, 8f, 0);
+        Vector3 spawnPos = player.position + new Vector3(0, 10f, 0);
         if (BrotatoArena.Instance != null)
         {
             spawnPos = BrotatoArena.Instance.ClampPosition(spawnPos, padding: 2.5f);
@@ -273,7 +465,7 @@ public class EnemySpawner : MonoBehaviour
             spawnPos = BrotatoArena.Instance.ClampPosition(spawnPos, padding: 2.0f);
         }
 
-        spawnPos.z = 0f; // Khóa chặt trục Z = 0 để rương luôn nổi lên trên mặt phẳng 2D, không chìm sau nền
+        spawnPos.z = 0f;
 
         // Spawn rương từ Object Pool
         GameObject chestObj = ObjectPool.Instance != null
@@ -329,7 +521,6 @@ public class EnemySpawner : MonoBehaviour
 
         Debug.Log($"<color=orange>[SPAWNER] Bão Tinh Linh Lửa xuất hiện! {ringMonsterCount} quái bao vây người chơi (Bán kính {ringRadius}m)</color>");
 
-        // Tính chỉ số tăng tiến theo wave và Curse
         int curseLv = GameDataManager.GetCurseLevel();
         float curseMultiplier = 1.0f + (curseLv * 0.10f);
 
@@ -360,14 +551,12 @@ public class EnemySpawner : MonoBehaviour
             Vector3 offset = new Vector3(Mathf.Cos(angleRad), Mathf.Sin(angleRad), 0f) * ringRadius;
             Vector3 rawPos = center + offset;
 
-            // Đảm bảo không spawn ngoài tường đấu trường Brotato
             Vector3 spawnPos = BrotatoArena.Instance != null
                 ? BrotatoArena.Instance.ClampPosition(rawPos, padding: 0.8f)
                 : rawPos;
 
             spawnPos.z = 0f;
 
-            // Sinh từ Object Pool
             GameObject spirit = ObjectPool.Instance != null
                 ? ObjectPool.Instance.Get(fireSpiritPrefab, spawnPos, Quaternion.identity)
                 : Instantiate(fireSpiritPrefab, spawnPos, Quaternion.identity);
