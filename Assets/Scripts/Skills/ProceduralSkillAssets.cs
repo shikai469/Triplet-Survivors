@@ -78,6 +78,16 @@ public static class ProceduralSkillAssets
     {
         if (cachedSprites.TryGetValue(name, out Sprite sp) && sp != null) return sp;
 
+        if (name == "Seagull")
+        {
+            Sprite seagullLoaded = DrawSeagullSprite(null, 32, 32);
+            if (seagullLoaded != null)
+            {
+                cachedSprites[name] = seagullLoaded;
+                return seagullLoaded;
+            }
+        }
+
 #if UNITY_EDITOR
         if (name == "SwordBlade" || name == "BaseballBat")
         {
@@ -838,7 +848,10 @@ public static class ProceduralSkillAssets
         switch (name)
         {
             case "SwordBlade":   DrawSwordBlade(colors, w, h);    break;
-            case "Seagull":      DrawSeagullSprite(colors, w, h); break;
+            case "Seagull":
+                Sprite loadedSeagull = DrawSeagullSprite(colors, w, h);
+                if (loadedSeagull != null) return loadedSeagull;
+                break;
             case "SunflowerSeed":DrawSunflowerSeed(colors, w, h); break;
             case "Grenade":      DrawGrenadeSprite(colors, w, h); break;
             case "Boomerang":    DrawBoomerangSprite(colors, w, h);break;
@@ -905,8 +918,23 @@ public static class ProceduralSkillAssets
         }
     }
 
-    static void DrawSeagullSprite(Color[] c, int w, int h)
+    static Sprite DrawSeagullSprite(Color[] c, int w, int h)
     {
+        Sprite[] sprites = Resources.LoadAll<Sprite>("seagull");
+        if (sprites != null && sprites.Length > 0)
+        {
+            System.Array.Sort(sprites, (a, b) =>
+            {
+                int idxA = GetSpriteIndex(a.name);
+                int idxB = GetSpriteIndex(b.name);
+                return idxA.CompareTo(idxB);
+            });
+            // Trả về frame bay ngang mặc định (seagull_6)
+            return sprites.Length > 6 ? sprites[6] : sprites[0];
+        }
+
+        if (c == null) return null;
+
         Color white = new Color(0.96f, 0.96f, 1f, 1f), grey = new Color(0.7f, 0.75f, 0.85f, 1f),
               beak  = new Color(1f, 0.8f, 0.1f, 1f);
         int midX = w / 2, midY = h / 2;
@@ -917,6 +945,21 @@ public static class ProceduralSkillAssets
         }
         FillCircle(c, w, new Vector2(midX, midY), 4f, white);
         SetPx(c, w, midX + 5, midY, beak); SetPx(c, w, midX + 6, midY, beak);
+        return null;
+    }
+
+    private static int GetSpriteIndex(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return 0;
+        int underscore = name.LastIndexOf('_');
+        if (underscore >= 0 && underscore < name.Length - 1)
+        {
+            if (int.TryParse(name.Substring(underscore + 1), out int idx))
+            {
+                return idx;
+            }
+        }
+        return 0;
     }
 
     static void DrawSunflowerSeed(Color[] c, int w, int h)

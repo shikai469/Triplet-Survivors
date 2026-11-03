@@ -17,6 +17,10 @@ public class PiercingShotSkill : MonoBehaviour
     public float bulletSpeed = 14f;
     public float bulletLifeTime = 4f;
 
+    [Header("Overdrive Settings")]
+    [Tooltip("Khoảng cách giữa các phát đạn Sniper khi trạng thái Xả Chiêu (Overdrive) kích hoạt")]
+    public float overdriveCooldown = 0.35f;
+
     private float cooldownTimer;
     private GameObject bulletTemplate;
 
@@ -44,6 +48,12 @@ public class PiercingShotSkill : MonoBehaviour
 
     public float GetCurrentCooldown()
     {
+        // 🌟 CƠ CHẾ XẢ CHIÊU (OVERDRIVE): Cường hóa bắn dồn dập cho Đạn Xuyên Thấu
+        if (OverdriveManager.Instance != null && OverdriveManager.Instance.isOverdriveActive)
+        {
+            return overdriveCooldown;
+        }
+
         switch (currentLevel)
         {
             case 1: return 5.0f;

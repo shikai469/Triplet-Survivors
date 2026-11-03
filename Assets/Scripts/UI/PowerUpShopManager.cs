@@ -83,8 +83,21 @@ public class PowerUpShopManager : MonoBehaviour
         if (btnBuy != null) btnBuy.onClick.AddListener(OnBuyClicked);
 
         CloseBottomSheet();
+        EnsureGridFitter();
         BuildSkillGrid();
         UpdateGoldUI();
+    }
+
+    private void EnsureGridFitter()
+    {
+        if (contentGrid != null)
+        {
+            if (!contentGrid.TryGetComponent<ResponsiveGridFitter>(out var fitter))
+            {
+                fitter = contentGrid.gameObject.AddComponent<ResponsiveGridFitter>();
+            }
+            fitter.RefreshLayout();
+        }
     }
 
     void InitializeDefaultPowerUps()
@@ -140,6 +153,11 @@ public class PowerUpShopManager : MonoBehaviour
                 slotUI.Setup(item, currentLevel, () => OpenBottomSheet(item));
                 slotUIElements[item.upgradeKey] = slotUI;
             }
+        }
+
+        if (contentGrid != null && contentGrid.TryGetComponent<ResponsiveGridFitter>(out var fitter))
+        {
+            fitter.RefreshLayout();
         }
     }
 

@@ -4,7 +4,12 @@ using TMPro;
 
 /// <summary>
 /// Quản lý Cơ Chế Tụ Điểm Xả Chiêu (Overdrive / Awakening)
-/// Tích lũy Kill Point khi diệt quái. Khi đầy ngưỡng, tự động kích hoạt Xả Chiêu cường hóa luồng đạn chính!
+/// Tích lũy Kill Point khi diệt quái. Khi đầy ngưỡng, tự động kích hoạt Xả Chiêu trong 5 giây!
+/// QUY TẮC CÂN BẰNG: Xả Chiêu chỉ áp dụng độc quyền cho 3 loại đạn:
+/// 1. Đạn thường mới vào game (Súng lục cơ bản bắn tốc độ cao 0.09s/viên)
+/// 2. Đạn xuyên thấu (Sniper bay xuyên quái bắn liên tục dồn dập mỗi 0.35s)
+/// 3. Đạn nâng cao (Shotgun bão đạn 7 tia / Súng máy xả liên thanh tốc độ cao)
+/// Các kỹ năng hỗ trợ khác (Vung Gậy, Hải Âu, Lựu Đạn, Giáp, Boomerang) không áp dụng để tránh quá bá đạo (Overpowered).
 /// </summary>
 public class OverdriveManager : MonoBehaviour
 {
