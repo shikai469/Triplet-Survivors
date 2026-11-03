@@ -33,10 +33,10 @@ public class ResponsiveGridFitter : MonoBehaviour
 
     [Header("Margin Constraints")]
     [Tooltip("Khoảng cách lề ngang an toàn tối thiểu (tránh đè viền bo góc)")]
-    public float minMarginX = 60f;
+    public float minMarginX = 30f;
 
     [Tooltip("Khoảng cách lề dọc an toàn tối thiểu (tránh đè viền trên dưới)")]
-    public float minMarginY = 160f;
+    public float minMarginY = 80f;
 
     [Header("Auto Setup Options")]
     [Tooltip("Tự động vô hiệu hóa ContentSizeFitter để tránh xung đột chiều cao")]
