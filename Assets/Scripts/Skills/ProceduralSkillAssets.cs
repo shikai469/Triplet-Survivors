@@ -50,27 +50,211 @@ public static class ProceduralSkillAssets
 
     /// <summary>
     /// Lấy icon theo upgradeKey string (dùng cho UpgradeScene slots).
-    /// Ánh xạ: Dmg->DamageUp, Defense->EnergyShield, Health->HealPack, Healing->Heal,
-    /// Extender->OrbitSwords, Speed->MoveSpeed, Magnet->MagnetRange, Luck->Coin,
-    /// Growth->FireRate, Greed->Coin, CritRate->PiercingShot, CritDmg->BurstFire
+    /// Các slot đặc thù (Extender, CritRate, CritDmg) sử dụng biểu tượng chuyên biệt chuẩn thiết kế tham khảo,
+    /// tránh trùng lặp với icon Passive Skills trong trận chiến (OrbitSwords, PiercingShot, BurstFire).
     /// </summary>
     public static Sprite GetSkillIconByKey(string upgradeKey)
     {
+        string cacheKey = "SlotIcon_" + upgradeKey;
+        if (cachedSprites.TryGetValue(cacheKey, out Sprite sp) && sp != null) return sp;
+
+        Sprite generated = null;
         switch (upgradeKey)
         {
-            case "Dmg":      return GetSkillIcon(UpgradeData.UpgradeType.DamageUp);
-            case "Defense":  return GetSkillIcon(UpgradeData.UpgradeType.EnergyShield);
-            case "Health":   return GetSkillIcon(UpgradeData.UpgradeType.SelectItem_HealPack);
-            case "Healing":  return GetSkillIcon(UpgradeData.UpgradeType.Heal);
-            case "Extender": return GetSkillIcon(UpgradeData.UpgradeType.OrbitSwords);
-            case "Speed":    return GetSkillIcon(UpgradeData.UpgradeType.MoveSpeed);
-            case "Magnet":   return GetSkillIcon(UpgradeData.UpgradeType.MagnetRange);
-            case "Luck":     return GetSkillIcon(UpgradeData.UpgradeType.SelectItem_Coin);
-            case "Growth":   return GetSkillIcon(UpgradeData.UpgradeType.FireRate);
-            case "Greed":    return GetSkillIcon(UpgradeData.UpgradeType.SelectItem_Coin);
-            case "CritRate": return GetSkillIcon(UpgradeData.UpgradeType.PiercingShot);
-            case "CritDmg":  return GetSkillIcon(UpgradeData.UpgradeType.BurstFire);
-            default:         return GetSkillIcon(UpgradeData.UpgradeType.DamageUp);
+            case "Extender":
+                // Biểu tượng Phạm Vi theo thiết kế tham khảo: Vòng tròn ngoài, 2 vạch đứng, mũi tên 2 chiều ngang ở giữa
+                generated = GenerateSlotIcon("Extender");
+                break;
+            case "CritRate":
+                // Biểu tượng TL Chí Mạng (Crit Rate) theo thiết kế tham khảo: Ngôi sao 4 cánh rỗng (hollow sparkle)
+                generated = GenerateSlotIcon("CritRate");
+                break;
+            case "CritDmg":
+                // Biểu tượng ST Chí Mạng (Crit DMG) theo thiết kế tham khảo: Vòng tròn nền + Ngôi sao 4 cánh đặc đè lên
+                generated = GenerateSlotIcon("CritDmg");
+                break;
+            case "Dmg":      generated = GetSkillIcon(UpgradeData.UpgradeType.DamageUp); break;
+            case "Defense":  generated = GetSkillIcon(UpgradeData.UpgradeType.EnergyShield); break;
+            case "Health":   generated = GetSkillIcon(UpgradeData.UpgradeType.SelectItem_HealPack); break;
+            case "Healing":  generated = GetSkillIcon(UpgradeData.UpgradeType.Heal); break;
+            case "Speed":    generated = GetSkillIcon(UpgradeData.UpgradeType.MoveSpeed); break;
+            case "Magnet":   generated = GetSkillIcon(UpgradeData.UpgradeType.MagnetRange); break;
+            case "Luck":     generated = GetSkillIcon(UpgradeData.UpgradeType.SelectItem_Coin); break;
+            case "Growth":   generated = GetSkillIcon(UpgradeData.UpgradeType.FireRate); break;
+            case "Greed":    generated = GetSkillIcon(UpgradeData.UpgradeType.SelectItem_Coin); break;
+            default:         generated = GetSkillIcon(UpgradeData.UpgradeType.DamageUp); break;
+        }
+
+        if (generated != null)
+        {
+            cachedSprites[cacheKey] = generated;
+        }
+        return generated;
+    }
+
+    /// <summary>
+    /// Tạo icon riêng biệt cho các ô nâng cấp vĩnh viễn (Extender, CritRate, CritDmg)
+    /// theo đúng ảnh mẫu tham khảo, không bị trùng với Passive Skills trong trận chiến.
+    /// </summary>
+    private static Sprite GenerateSlotIcon(string key)
+    {
+        const int size = 80;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        Color[] c = new Color[size * size];
+
+        Color bgTop, bgBot;
+
+        switch (key)
+        {
+            case "Extender":
+                // Slot_Extender (Phạm Vi) — Nền xanh biển hoàng gia sang trọng
+                bgTop = new Color(0.12f, 0.45f, 0.88f, 1f);
+                bgBot = new Color(0.04f, 0.16f, 0.45f, 1f);
+                FillGradient(c, size, bgBot, bgTop);
+                DrawRoundBorder(c, size, new Color(1f, 1f, 1f, 0.25f), 6);
+                DrawRangeExtender(c, size, Color.white);
+                break;
+
+            case "CritRate":
+                // Slot_CritRate (TL Chí Mạng) — Nền cam rực rỡ
+                bgTop = new Color(0.96f, 0.48f, 0.08f, 1f);
+                bgBot = new Color(0.52f, 0.18f, 0.02f, 1f);
+                FillGradient(c, size, bgBot, bgTop);
+                DrawRoundBorder(c, size, new Color(1f, 1f, 1f, 0.25f), 6);
+                DrawHollowCritStar(c, size, Color.white);
+                break;
+
+            case "CritDmg":
+                // Slot_CritDmg (ST Chí Mạng) — Nền đỏ cherry sẫm uy lực
+                bgTop = new Color(0.85f, 0.12f, 0.25f, 1f);
+                bgBot = new Color(0.42f, 0.04f, 0.10f, 1f);
+                FillGradient(c, size, bgBot, bgTop);
+                DrawRoundBorder(c, size, new Color(1f, 1f, 1f, 0.25f), 6);
+                DrawFilledCritStarWithCircle(c, size, new Color(0.32f, 0.40f, 0.58f, 0.88f), Color.white);
+                break;
+
+            default:
+                bgTop = new Color(0.3f, 0.3f, 0.4f, 1f);
+                bgBot = new Color(0.1f, 0.1f, 0.15f, 1f);
+                FillGradient(c, size, bgBot, bgTop);
+                DrawRoundBorder(c, size, new Color(1f, 1f, 1f, 0.25f), 6);
+                break;
+        }
+
+        tex.SetPixels(c);
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+
+    // ── Biểu tượng Phạm Vi (Theo ảnh tham khảo 2): Vòng tròn ngoài, 2 vạch đứng, mũi tên 2 chiều ngang ở giữa ──
+    private static void DrawRangeExtender(Color[] c, int s, Color col)
+    {
+        Vector2 center = new Vector2(s * 0.5f, s * 0.5f);
+        float radius = s * 0.36f; // ~28.8px
+        float ringThick = 3.5f;
+
+        // 1. Vòng tròn bao ngoài
+        FillRing(c, s, center, radius, ringThick, col);
+
+        // 2. Hai vạch đứng song song ở 2 bên
+        float barXOffset = radius * 0.58f; // ~16.7px
+        float barHalfH = radius * 0.44f;   // ~12.7px
+        Vector2 leftTop = center + new Vector2(-barXOffset, barHalfH);
+        Vector2 leftBot = center + new Vector2(-barXOffset, -barHalfH);
+        Vector2 rightTop = center + new Vector2(barXOffset, barHalfH);
+        Vector2 rightBot = center + new Vector2(barXOffset, -barHalfH);
+
+        ThickLine(c, s, leftTop, leftBot, col, 3);
+        ThickLine(c, s, rightTop, rightBot, col, 3);
+
+        // 3. Mũi tên 2 chiều nằm ngang ở giữa
+        float arrowLeftX = center.x - barXOffset + 2f;
+        float arrowRightX = center.x + barXOffset - 2f;
+        Vector2 arrowStart = new Vector2(arrowLeftX, center.y);
+        Vector2 arrowEnd = new Vector2(arrowRightX, center.y);
+
+        // Thân mũi tên ngang
+        ThickLine(c, s, arrowStart, arrowEnd, col, 3);
+
+        // Đầu mũi tên bên trái: <
+        float headSize = 7.5f;
+        ThickLine(c, s, arrowStart, arrowStart + new Vector2(headSize, headSize), col, 3);
+        ThickLine(c, s, arrowStart, arrowStart + new Vector2(headSize, -headSize), col, 3);
+
+        // Đầu mũi tên bên phải: >
+        ThickLine(c, s, arrowEnd, arrowEnd + new Vector2(-headSize, headSize), col, 3);
+        ThickLine(c, s, arrowEnd, arrowEnd + new Vector2(-headSize, -headSize), col, 3);
+    }
+
+    // ── Biểu tượng TL Chí Mạng (Theo ảnh tham khảo 1 dòng trên): Ngôi sao 4 cánh rỗng (Hollow 4-point sparkle) ──
+    private static void DrawHollowCritStar(Color[] c, int s, Color col)
+    {
+        Vector2 center = new Vector2(s * 0.5f, s * 0.5f);
+        float rMax = s * 0.35f; // ~28px
+        float power = 0.55f;    // Độ cong lõm hình astroid
+        float target = 1.0f;
+        float halfThick = 0.17f; // Độ dày nét rỗng
+
+        for (int y = 0; y < s; y++)
+        {
+            for (int x = 0; x < s; x++)
+            {
+                float dx = Mathf.Abs(x - center.x);
+                float dy = Mathf.Abs(y - center.y);
+
+                if (dx > rMax || dy > rMax) continue;
+
+                float u = dx / rMax;
+                float v = dy / rMax;
+
+                float val = Mathf.Pow(u, power) + Mathf.Pow(v, power);
+
+                float dist = Mathf.Abs(val - target);
+                if (dist <= halfThick)
+                {
+                    float alpha = Mathf.Clamp01(1f - (dist / halfThick)) * col.a;
+                    BlendPixel(c, s, x, y, new Color(col.r, col.g, col.b, alpha));
+                }
+            }
+        }
+    }
+
+    // ── Biểu tượng ST Chí Mạng (Theo ảnh tham khảo 1 dòng dưới): Vòng tròn nền + Ngôi sao 4 cánh đặc đè lên ──
+    private static void DrawFilledCritStarWithCircle(Color[] c, int s, Color circleCol, Color starCol)
+    {
+        Vector2 center = new Vector2(s * 0.5f, s * 0.5f);
+
+        // 1. Vòng tròn nền ở giữa
+        float circleR = s * 0.23f; // ~18.4px
+        FillCircle(c, s, center, circleR, circleCol);
+
+        // 2. Ngôi sao 4 cánh đặc đè lên trên, các đỉnh nhọn vươn dài ra ngoài vòng tròn
+        float rMax = s * 0.35f; // ~28px
+        float power = 0.55f;
+
+        for (int y = 0; y < s; y++)
+        {
+            for (int x = 0; x < s; x++)
+            {
+                float dx = Mathf.Abs(x - center.x);
+                float dy = Mathf.Abs(y - center.y);
+
+                if (dx > rMax || dy > rMax) continue;
+
+                float u = dx / rMax;
+                float v = dy / rMax;
+
+                float val = Mathf.Pow(u, power) + Mathf.Pow(v, power);
+
+                // Tô đặc toàn bộ vùng bên trong ngôi sao (val <= 1.0)
+                if (val <= 1.0f)
+                {
+                    float edgeDist = 1.0f - val;
+                    float alpha = Mathf.Clamp01(edgeDist * 6f) * starCol.a;
+                    BlendPixel(c, s, x, y, new Color(starCol.r, starCol.g, starCol.b, alpha));
+                }
+            }
         }
     }
 

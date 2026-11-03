@@ -114,7 +114,7 @@ public class PowerUpShopManager : MonoBehaviour
             new ShopUpgradeItem { upgradeKey = "Luck", displayName = "May Mắn", maxLevel = 3, costPerLevel = new int[] { 200, 700, 1600 }, description = "Tăng 10% may mắn khi bốc thẻ bài hiếm (tối đa +30%)." },
             new ShopUpgradeItem { upgradeKey = "Growth", displayName = "Tăng EXP", maxLevel = 5, costPerLevel = new int[] { 200, 400, 700, 1100, 1600 }, description = "Tăng 3% lượng kinh nghiệm nhận được (tối đa +15%)." },
             new ShopUpgradeItem { upgradeKey = "Greed", displayName = "Thêm Vàng", maxLevel = 5, costPerLevel = new int[] { 200, 400, 700, 1100, 1600 }, description = "Tăng 2 vàng thu thập mỗi lần nhặt (tối đa +10)." },
-            new ShopUpgradeItem { upgradeKey = "CritRate", displayName = "Tỉ Lệ Chí Mạng", maxLevel = 5, costPerLevel = new int[] { 200, 400, 700, 1100, 1600 }, description = "Tăng 3% tỉ lệ đánh chí mạng (tối đa +15%)." },
+            new ShopUpgradeItem { upgradeKey = "CritRate", displayName = "TL Chí Mạng", maxLevel = 5, costPerLevel = new int[] { 200, 400, 700, 1100, 1600 }, description = "Tăng 3% tỉ lệ đánh chí mạng (tối đa +15%)." },
             new ShopUpgradeItem { upgradeKey = "CritDmg", displayName = "ST Chí Mạng", maxLevel = 5, costPerLevel = new int[] { 200, 400, 700, 1100, 1600 }, description = "Tăng 10% sát thương đòn chí mạng (tối đa +50%)." }
         };
     }

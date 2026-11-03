@@ -93,10 +93,13 @@ public class UpgradeSceneIconSetup : MonoBehaviour
         string key = ExtractKey(slotName);
 
         if (string.IsNullOrEmpty(key)) return;
-        if (!runtimeMapping.TryGetValue(key, out UpgradeData.UpgradeType upgradeType)) return;
 
-        // Lấy icon từ ProceduralSkillAssets
-        Sprite icon = ProceduralSkillAssets.GetSkillIcon(upgradeType);
+        // Ưu tiên lấy icon chuyên biệt theo key từ ProceduralSkillAssets (Extender, CritRate, CritDmg)
+        Sprite icon = ProceduralSkillAssets.GetSkillIconByKey(key);
+        if (icon == null && runtimeMapping.TryGetValue(key, out UpgradeData.UpgradeType upgradeType))
+        {
+            icon = ProceduralSkillAssets.GetSkillIcon(upgradeType);
+        }
         if (icon == null) return;
 
         // Gán vào Image icon của slot
@@ -106,6 +109,12 @@ public class UpgradeSceneIconSetup : MonoBehaviour
             iconImage.sprite = icon;
             iconImage.color = Color.white;
             iconImage.preserveAspect = true;
+        }
+
+        // Cập nhật tên chuẩn viết tắt TL Chí Mạng (đồng bộ với ST Chí Mạng)
+        if (key == "CritRate" && slot.textName != null)
+        {
+            slot.textName.text = "TL Chí Mạng";
         }
     }
 
