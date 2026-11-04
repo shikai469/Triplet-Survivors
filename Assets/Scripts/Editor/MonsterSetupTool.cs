@@ -171,6 +171,91 @@ public static class MonsterSetupTool
         Debug.Log("<color=orange>[MONSTER SETUP] Đã thiết lập thành công Quái Tinh Linh Lửa (Enemy-FireHighSpirit) và gắn vào Spawner GameplayScene!</color>");
     }
 
+    [MenuItem("Tools/Setup Boss Meo Chuoi")]
+    public static void SetupBossMeoChuoi()
+    {
+        AssetDatabase.Refresh();
+
+        string walkPath = "Assets/MonsterAssets/meochuoi/MeoChuoi_Walk.png";
+        string cryPath = "Assets/MonsterAssets/meochuoi/MeoChuoi_Cry.png";
+
+        SliceSpritesheet(walkPath, 4, 63, 76);
+        SliceSpritesheet(cryPath, 4, 63, 76);
+
+        AssetDatabase.ImportAsset(walkPath, ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(cryPath, ImportAssetOptions.ForceUpdate);
+        AssetDatabase.Refresh();
+
+        var walkSprites = LoadSprites(walkPath);
+        var crySprites = LoadSprites(cryPath);
+
+        if (walkSprites.Count == 0 || crySprites.Count == 0)
+        {
+            Debug.LogError($"[MONSTER SETUP] Không load được sprite Mèo Chuối! Walk count: {walkSprites.Count}, Cry count: {crySprites.Count}");
+            return;
+        }
+
+        var walkClip = CreateAnimationClip("MeoChuoi_Walk", walkSprites, 8f);
+        var cryClip = CreateAnimationClip("MeoChuoi_Cry", crySprites, 8f);
+        var controller = CreateMonsterAnimatorController("MeoChuoi_Controller", walkClip, cryClip);
+
+        GameObject xpPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/XP.prefab");
+        GameObject goldPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Gold.prefab");
+
+        Sprite defaultSprite = walkSprites[0];
+        GameObject bossPrefab = CreateMonsterPrefab(
+            prefabName: "Boss-MeoChuoi",
+            sprite: defaultSprite,
+            controller: controller,
+            colliderRadius: 0.35f,
+            moveSpeed: 1.5f,
+            attackDamage: 28,
+            maxHp: 6000f,
+            armor: 3,
+            knockbackRes: 0f,
+            xpPrefab: xpPrefab,
+            goldPrefab: goldPrefab,
+            isBoss: true,
+            scale: 2.5f
+        );
+
+        if (bossPrefab.GetComponent<BossMeoChuoiAI>() == null)
+        {
+            var ai = bossPrefab.AddComponent<BossMeoChuoiAI>();
+            ai.baseMoveSpeed = 1.6f;
+            ai.rushSpeed = 8.5f;
+            ai.rushDamage = 26;
+            ai.tearDamage = 14;
+            ai.bananaStrikeDamage = 22;
+            ai.shockwaveDamage = 16;
+            EditorUtility.SetDirty(bossPrefab);
+            AssetDatabase.SaveAssets();
+        }
+
+        var activeScene = EditorSceneManager.GetActiveScene();
+        if (activeScene.name != "GameplayScene")
+        {
+            EditorSceneManager.OpenScene("Assets/Scenes/GameplayScene.unity");
+        }
+
+        GameStageManager stageManager = Object.FindAnyObjectByType<GameStageManager>();
+        if (stageManager != null)
+        {
+            stageManager.bossPrefab = bossPrefab;
+            stageManager.bossMeoChuoiPrefab = bossPrefab;
+            stageManager.forceSpawnMeoChuoi = true;
+            if (stageManager.activeConfig != null)
+            {
+                stageManager.activeConfig.bossPrefabOverride = bossPrefab;
+            }
+            EditorUtility.SetDirty(stageManager);
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            EditorSceneManager.SaveOpenScenes();
+        }
+
+        Debug.Log("<color=yellow>[MONSTER SETUP] Đã thiết lập thành công Boss Mèo Chuối (MeoChuoi) với Sprite 1 tầng, Animation và gán vào GameplayScene!</color>");
+    }
+
     private static void SliceSpritesheet(string assetPath, int frameCount, int frameW, int frameH)
     {
         TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;

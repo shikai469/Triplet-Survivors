@@ -34,7 +34,9 @@ public class EnemyMovement : MonoBehaviour
         // Reset trạng thái khi lấy từ pool tái sử dụng
         knockbackVelocity = Vector2.zero;
         knockbackTimer = 0f;
-        damageTimer = 0f;
+        
+        // Khởi tạo damageTimer = damageCooldown để quái cắn ngay lập tức khi vừa chạm Player, không bị delay
+        damageTimer = damageCooldown;
 
         // Kích hoạt hiệu ứng quái lao từ xa vào và hiện hình mượt mà
         if (enableEntranceEffect)
@@ -164,27 +166,41 @@ public class EnemyMovement : MonoBehaviour
         }
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            TryDamagePlayer(collision.gameObject);
+        }
+    }
+
     private void OnCollisionStay2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Cooldown chống spam damage mỗi physics frame (giảm tải CPU mobile)
             damageTimer += Time.deltaTime;
             if (damageTimer >= damageCooldown)
             {
-                damageTimer = 0f;
-                if (PlayerHealth.Instance != null)
-                {
-                    PlayerHealth.Instance.TakeDamage(attackDamage);
-                }
-                else
-                {
-                    PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
-                    if (playerHealth != null)
-                    {
-                        playerHealth.TakeDamage(attackDamage);
-                    }
-                }
+                TryDamagePlayer(collision.gameObject);
+            }
+        }
+    }
+
+    private void TryDamagePlayer(GameObject playerObj)
+    {
+        if (damageTimer < damageCooldown) return;
+        damageTimer = 0f;
+
+        if (PlayerHealth.Instance != null)
+        {
+            PlayerHealth.Instance.TakeDamage(attackDamage);
+        }
+        else
+        {
+            PlayerHealth playerHealth = playerObj.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(attackDamage);
             }
         }
     }

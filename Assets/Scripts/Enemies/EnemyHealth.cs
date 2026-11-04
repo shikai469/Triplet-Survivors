@@ -76,9 +76,13 @@ public class EnemyHealth : MonoBehaviour
         }
 
         // Báo hiệu cho GameStageManager nếu đây là Boss
-        if (isBoss && GameStageManager.Instance != null)
+        if (isBoss)
         {
-            GameStageManager.Instance.OnBossDefeated(this);
+            if (GameStageManager.Instance != null)
+            {
+                GameStageManager.Instance.OnBossDefeated(this);
+            }
+            BossHealthBarUI.Hide();
         }
 
         LootDropSystem loot = GetComponent<LootDropSystem>();

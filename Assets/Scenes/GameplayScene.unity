@@ -5159,7 +5159,7 @@ MonoBehaviour:
     goldMultiplier: 1.5
     expMultiplier: 1.25
     scoreMultiplier: 1.5
-    bossPrefabOverride: {fileID: 2076999215178008241, guid: 8211bcde02923e446b78674da27c9a1f, type: 3}
+    bossPrefabOverride: {fileID: 2076999215178008241, guid: c1a2b3d4e5f60718293a4b5c6d7e8f04, type: 3}
     backgroundSpriteOverride: {fileID: 0}
     backgroundMaterialOverride: {fileID: 0}
   isEndlessMode: 0
@@ -5170,7 +5170,10 @@ MonoBehaviour:
   warningColor: {r: 1, g: 0.2, b: 0.2, a: 1}
   flashSpeed: 4
   enemySpawner: {fileID: 1707406240}
-  bossPrefab: {fileID: 2076999215178008241, guid: 8211bcde02923e446b78674da27c9a1f, type: 3}
+  bossPrefab: {fileID: 2076999215178008241, guid: c1a2b3d4e5f60718293a4b5c6d7e8f04, type: 3}
+  bossMeoChuoiPrefab: {fileID: 2076999215178008241, guid: c1a2b3d4e5f60718293a4b5c6d7e8f04, type: 3}
+  forceSpawnMeoChuoi: 1
+  fireRingRadius: 8.5
 --- !u!4 &1301279147
 Transform:
   m_ObjectHideFlags: 0

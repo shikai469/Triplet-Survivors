@@ -45,6 +45,12 @@ public class GameStageManager : MonoBehaviour
     public EnemySpawner enemySpawner;
     public GameObject bossPrefab;
 
+    [Header("Boss Mèo Chuối & Fire Ring Arena")]
+    public GameObject bossMeoChuoiPrefab;
+    public bool forceSpawnMeoChuoi = true; // Kích hoạt Boss Mèo Chuối làm Boss cuối
+    public float fireRingRadius = 8.5f;
+    private FireRingArena activeFireRing = null;
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -75,6 +81,14 @@ public class GameStageManager : MonoBehaviour
             bossPrefab = activeConfig.bossPrefabOverride;
         }
 
+        // Tải Boss Mèo Chuối nếu chưa được gán
+        if (bossMeoChuoiPrefab == null)
+        {
+#if UNITY_EDITOR
+            bossMeoChuoiPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Boss-MeoChuoi.prefab");
+#endif
+        }
+
         // Cập nhật nhãn tên độ khó trên UI (nếu có)
         if (difficultyBadgeText != null)
         {
@@ -95,7 +109,6 @@ public class GameStageManager : MonoBehaviour
         // 4. Áp dụng hệ số kinh tế & thưởng vào PlayerStats
         if (PlayerStats.Instance != null)
         {
-            // Tăng tỷ lệ EXP theo độ khó
             PlayerStats.Instance.expBonus += (activeConfig.expMultiplier - 1.0f);
         }
 
@@ -174,7 +187,7 @@ public class GameStageManager : MonoBehaviour
         {
             if (countdownText != null)
             {
-                countdownText.text = "BOSS";
+                countdownText.text = "BOSS MÈO CHUỐI";
                 float t = Mathf.PingPong(Time.time * flashSpeed, 1f);
                 countdownText.color = Color.Lerp(normalColor, warningColor, t);
             }
@@ -226,7 +239,7 @@ public class GameStageManager : MonoBehaviour
             TriggerMidWaveSwarm();
         }
 
-        // Hết thời gian: Boss xuất hiện!
+        // Hết thời gian đếm ngược: Boss xuất hiện!
         if (currentTime <= 0f && !bossWaveTriggered)
         {
             bossWaveTriggered = true;
@@ -277,61 +290,152 @@ public class GameStageManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Kích hoạt đại chiến Boss: Despawn hết quái thường, tạo Vòng Tròn Lửa giam giữ và triệu hồi Boss Mèo Chuối
+    /// </summary>
     void TriggerBossFight()
     {
-        Debug.Log("<color=red>[BOSS XUẤT HIỆN] TIÊU DIỆT TRÙM ĐỂ CHIẾN THẮNG MÀN CHƠI!</color>");
+        Debug.Log("<color=red>[BOSS XUẤT HIỆN] BOSS MÈO CHUỐI ĐÃ ĐỔ BỘ! TIÊU DIỆT TRÙM ĐỂ CHIẾN THẮNG!</color>");
 
+        // 1. Tắt hoàn toàn Spawner để không sinh thêm quái con
         if (enemySpawner != null)
         {
-            enemySpawner.spawnInterval = 2.0f; // Giảm bớt quái con để tập trung đánh Boss
+            enemySpawner.StopAllCoroutines();
+            enemySpawner.enabled = false;
         }
 
-        if (bossPrefab != null && PlayerStats.Instance != null)
+        // 2. Despawn sạch toàn bộ quái vật thường đang sống trên bản đồ về Object Pool
+        var activeEnemiesList = new List<EnemyHealth>(EnemyHealth.ActiveEnemies);
+        for (int i = 0; i < activeEnemiesList.Count; i++)
         {
-            Vector3 spawnPos = PlayerStats.Instance.transform.position + new Vector3(0, 8f, 0);
-            // Spawn Boss từ Object Pool
-            currentActiveBoss = ObjectPool.Instance != null
-                ? ObjectPool.Instance.Get(bossPrefab, spawnPos, Quaternion.identity)
-                : Instantiate(bossPrefab, spawnPos, Quaternion.identity);
+            if (activeEnemiesList[i] != null && !activeEnemiesList[i].isBoss)
+            {
+                if (ObjectPool.Instance != null)
+                {
+                    ObjectPool.Instance.Return(activeEnemiesList[i].gameObject);
+                }
+                else
+                {
+                    Destroy(activeEnemiesList[i].gameObject);
+                }
+            }
+        }
 
-            // Gán thông số Boss
+        // 3. Chọn Prefab Boss (Ưu tiên Boss Mèo Chuối theo yêu cầu)
+        GameObject targetBossPrefab = bossPrefab;
+        if (forceSpawnMeoChuoi && bossMeoChuoiPrefab != null)
+        {
+            targetBossPrefab = bossMeoChuoiPrefab;
+        }
+        else if (targetBossPrefab == null && bossMeoChuoiPrefab != null)
+        {
+            targetBossPrefab = bossMeoChuoiPrefab;
+        }
+
+        if (targetBossPrefab != null && PlayerStats.Instance != null)
+        {
+            Vector3 playerPos = PlayerStats.Instance.transform.position;
+
+            // Tính toán tâm đấu trường vòng tròn lửa (nếu có BrotatoArena thì kẹp an toàn không vượt quá tường)
+            Vector3 arenaCenter = playerPos;
+            if (BrotatoArena.Instance != null)
+            {
+                arenaCenter = BrotatoArena.Instance.ClampPosition(playerPos, padding: fireRingRadius * 0.85f);
+            }
+            arenaCenter.z = 0f;
+
+            // Đặt Boss xuất hiện ở mép trên của vòng tròn đấu trường (cách người chơi khoảng 4.5m)
+            Vector3 spawnPos = arenaCenter + new Vector3(0f, 4.5f, 0f);
+
+            currentActiveBoss = ObjectPool.Instance != null
+                ? ObjectPool.Instance.Get(targetBossPrefab, spawnPos, Quaternion.identity)
+                : Instantiate(targetBossPrefab, spawnPos, Quaternion.identity);
+
+            // 4. Kích hoạt Đấu trường Vòng Tròn Lửa (Không cho Người chơi và Boss thoát ra)
+            GameObject ringObj = new GameObject("[FireRingArena]");
+            activeFireRing = ringObj.AddComponent<FireRingArena>();
+            activeFireRing.ActivateArena(arenaCenter, PlayerStats.Instance.transform, currentActiveBoss.transform, fireRingRadius);
+
+            // 5. Cân chỉnh Máu Boss trâu bò đánh tầm hơn 1 phút mới hạ gục (dựa theo DPS giai đoạn cuối trận ~100-120 DPS)
+            float bossHp = 7800f; // Mặc định chế độ Normal (~1 phút 15 giây chiến đấu liên tục)
+            int bossArmor = 3;
+            int bossDmg = 28;
+
+            if (activeConfig != null)
+            {
+                switch (activeConfig.level)
+                {
+                    case DifficultyLevel.Easy:
+                        bossHp = 4200f;  // Dễ: ~60 giây với DPS trung bình 70
+                        bossArmor = 2;
+                        bossDmg = 12;
+                        break;
+                    case DifficultyLevel.Normal:
+                        bossHp = 7800f;  // Bình thường: ~70-80 giây
+                        bossArmor = 3;
+                        bossDmg = 28;
+                        break;
+                    case DifficultyLevel.Hard:
+                        bossHp = 18000f; // Khó: Máu cực trâu, thử thách build đồ tối thượng
+                        bossArmor = 5;
+                        bossDmg = 65;
+                        break;
+                    case DifficultyLevel.Endless:
+                        bossHp = 9500f;
+                        bossArmor = 4;
+                        bossDmg = 40;
+                        break;
+                }
+            }
+
             EnemyHealth bossHealth = currentActiveBoss.GetComponent<EnemyHealth>();
             if (bossHealth != null)
             {
-                float bossHp = 40f * activeConfig.baseHpMultiplier;
-                bossHealth.InitStats(bossHp, extraArmor: 2, knockbackRes: 0f, boss: true);
+                bossHealth.InitStats(bossHp, extraArmor: bossArmor, knockbackRes: 0f, boss: true);
+
+                // 6. Hiển thị Thanh Máu Boss hoành tráng trên đỉnh màn hình
+                BossHealthBarUI.Show(bossHealth, "MÈO CHUỐI");
             }
 
             EnemyMovement bossMove = currentActiveBoss.GetComponent<EnemyMovement>();
             if (bossMove != null)
             {
-                bossMove.InitMovement(1.2f, activeConfig.maxDamage * 2, 0f);
+                bossMove.InitMovement(1.35f, bossDmg, 0f);
             }
         }
         else
         {
-            // Trường hợp không có BossPrefab: Người chơi sống sót qua hết giờ là chiến thắng!
+            // Trường hợp hy hữu không có Boss: Sống sót qua hết giờ là chiến thắng
             TriggerStageVictory();
         }
     }
 
     void TriggerEndlessBossWave()
     {
-        if (enemySpawner != null && bossPrefab != null)
+        if (enemySpawner != null && (bossMeoChuoiPrefab != null || bossPrefab != null))
         {
-            Debug.Log("<color=purple>[VÔ TẬN - ĐỢT TRÙM] MỘT THỰC THỂ KHỦNG BỐ XUẤT HIỆN!</color>");
-            float endlessHpScale = 1.0f + (currentTime / 60f) * 0.5f; // Máu Boss tăng dần theo thời gian sinh tồn
-            enemySpawner.SpawnBoss(bossPrefab, endlessHpScale);
+            Debug.Log("<color=purple>[VÔ TẬN - ĐỢT TRÙM] MÈO CHUỐI ĐẠI ĐẾ XUẤT HIỆN!</color>");
+            float endlessHpScale = 1.0f + (currentTime / 60f) * 0.5f;
+            GameObject bPrefab = bossMeoChuoiPrefab ?? bossPrefab;
+            enemySpawner.SpawnBoss(bPrefab, endlessHpScale);
         }
     }
 
-    // Hàm nhận thông báo khi một Boss bị tiêu diệt
+    /// <summary>
+    /// Nhận thông báo khi Boss bị tiêu diệt
+    /// </summary>
     public void OnBossDefeated(EnemyHealth boss)
     {
+        // 1. Tắt Vòng Tròn Lửa & Thanh Máu Boss
+        if (activeFireRing != null)
+        {
+            activeFireRing.DeactivateArena();
+        }
+        BossHealthBarUI.Hide();
+
         if (isEndlessMode)
         {
             Debug.Log("<color=green>[VÔ TẬN] ĐÃ TIÊU DIỆT BOSS! TIẾP TỤC SINH TỒN...</color>");
-            // Thưởng thêm vàng cho player khi diệt boss vô tận
             if (PlayerStats.Instance != null)
             {
                 int bonusGold = Mathf.RoundToInt(50 * activeConfig.goldMultiplier);
@@ -340,10 +444,17 @@ public class GameStageManager : MonoBehaviour
         }
         else
         {
-            // Trong chế độ thường: Tiêu diệt Boss = CHIẾN THẮNG (STAGE CLEAR)!
-            Debug.Log("<color=green>[CHIẾN THẮNG] TRÙM CUỐI ĐÃ BỊ HẠ GỤC!</color>");
-            TriggerStageVictory();
+            // Trong chế độ thường: Tiêu diệt Boss Mèo Chuối = CHIẾN THẮNG GAME (STAGE CLEAR)!
+            Debug.Log("<color=green>[CHIẾN THẮNG] TRÙM CUỐI MÈO CHUỐI ĐÃ BỊ HẠ GỤC!</color>");
+            StartCoroutine(VictorySequenceRoutine());
         }
+    }
+
+    private IEnumerator VictorySequenceRoutine()
+    {
+        // Chờ 1.5 giây để hiệu ứng tan biến và người chơi kịp nhìn thấy chiến lợi phẩm rơi ra
+        yield return new WaitForSeconds(1.5f);
+        TriggerStageVictory();
     }
 
     void TriggerStageVictory()

@@ -350,6 +350,41 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Tính toán sát thương của quái dựa trên sát thương gốc của Prefab và cấu hình độ khó.
+    /// Giúp quái to/tinh anh (Demon) luôn cắn đau hơn quái tép (HornedRabbit, ChoDo).
+    /// </summary>
+    public int CalculateMonsterDamage(GameObject prefab, int wave, int playerLevel)
+    {
+        // 1. Lấy sát thương gốc của Prefab (nếu không có thì mặc định 10)
+        int prefabBaseDamage = 10;
+        if (prefab != null)
+        {
+            EnemyMovement moveComp = prefab.GetComponent<EnemyMovement>();
+            if (moveComp != null && moveComp.attackDamage > 0)
+            {
+                prefabBaseDamage = moveComp.attackDamage;
+            }
+        }
+
+        // 2. Tính hệ số độ khó: chuẩn hóa theo sát thương trung bình của config so với mốc chuẩn (10)
+        float diffMultiplier = 1.0f;
+        if (config != null)
+        {
+            float avgConfigDamage = (config.minDamage + config.maxDamage) * 0.5f;
+            diffMultiplier = Mathf.Max(0.1f, avgConfigDamage / 10.0f);
+        }
+
+        // 3. Tăng tiến nhẹ theo Wave và Cấp độ người chơi (+4% mỗi wave, +2% mỗi cấp)
+        float progressionMultiplier = 1.0f + (wave - 1) * 0.04f + (playerLevel - 1) * 0.02f;
+
+        // 4. Dao động ngẫu nhiên +-10% để tạo độ phong phú khi giao tranh
+        float variance = Random.Range(0.9f, 1.1f);
+
+        int finalDamage = Mathf.RoundToInt(prefabBaseDamage * diffMultiplier * progressionMultiplier * variance);
+        return Mathf.Max(1, finalDamage);
+    }
+
     void SpawnEnemy(int playerLevel = 1)
     {
         if (player == null) return;
@@ -383,10 +418,8 @@ public class EnemySpawner : MonoBehaviour
             extraArmor = Mathf.FloorToInt((currentWave - config.armorStartWave + 1) * config.armorGrowthRate);
         }
 
-        // Sát thương quái
-        int minDmg = config != null ? config.minDamage : 8;
-        int maxDmg = config != null ? config.maxDamage : 15;
-        int rolledDamage = Random.Range(minDmg, maxDmg + 1);
+        // Sát thương quái thích ứng theo từng loại quái và độ khó
+        int rolledDamage = CalculateMonsterDamage(targetPrefab, currentWave, playerLevel);
 
         // Tốc độ di chuyển
         float baseSpeed = config != null ? config.baseMoveSpeed : 2.0f;
@@ -444,7 +477,15 @@ public class EnemySpawner : MonoBehaviour
         EnemyMovement bossMovement = boss.GetComponent<EnemyMovement>();
         if (bossMovement != null)
         {
-            int bossDmg = config != null ? config.maxDamage * 2 : 30;
+            int bossBaseDamage = 32;
+            EnemyMovement bossPrefabMovement = bossToSpawn.GetComponent<EnemyMovement>();
+            if (bossPrefabMovement != null && bossPrefabMovement.attackDamage > 0)
+            {
+                bossBaseDamage = bossPrefabMovement.attackDamage;
+            }
+            float diffMult = (config != null) ? ((config.minDamage + config.maxDamage) * 0.5f / 10f) : 1.3f;
+            int bossDmg = Mathf.Max(1, Mathf.RoundToInt(bossBaseDamage * diffMult * 1.15f));
+
             bossMovement.InitMovement(1.2f, bossDmg, 0f);
         }
 
@@ -534,9 +575,7 @@ public class EnemySpawner : MonoBehaviour
             extraArmor = Mathf.FloorToInt((currentWave - config.armorStartWave + 1) * config.armorGrowthRate);
         }
 
-        int minDmg = config != null ? config.minDamage : 8;
-        int maxDmg = config != null ? config.maxDamage : 15;
-        int rolledDamage = Random.Range(minDmg, maxDmg + 1);
+        int rolledDamage = CalculateMonsterDamage(fireSpiritPrefab, currentWave, 1);
 
         float baseSpeed = config != null ? config.baseMoveSpeed : 1.8f;
         float maxSpeed = config != null ? config.maxMoveSpeed : 2.8f;
