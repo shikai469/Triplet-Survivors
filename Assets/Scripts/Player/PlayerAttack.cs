@@ -7,7 +7,7 @@ public class PlayerAttack : MonoBehaviour
 
     [Header("Base Attack Settings")]
     public GameObject bulletPrefab; // Kéo Bullet prefab vào đây
-    public float attackRange = 5f;  // Tầm đánh
+    public float attackRange = 3.5f;  // Tầm đánh (thu gọn trong tầm nhìn màn hình dọc)
     public float fireRate = 1f;     // Tốc độ bắn cơ bản
     private float fireTimer;
 

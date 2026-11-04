@@ -78,7 +78,7 @@ public class SeagullAllySkill : MonoBehaviour
 public class SeagullCompanion : MonoBehaviour
 {
     public Transform owner;
-    public float attackRange = 5f;
+    public float attackRange = 3.2f; // Giới hạn tầm bắn gọn gàng trong màn hình
     public float fireRate = 1.0f;
     public float damage = 18f;
 
@@ -152,19 +152,19 @@ public class SeagullCompanion : MonoBehaviour
     {
         currentLevel = level;
 
-        // Cập nhật tầm bắn và tốc độ bắn theo cấp
+        // Cập nhật tầm bắn và tốc độ bắn theo cấp (giới hạn trong tầm nhìn màn hình)
         switch (level)
         {
             case 1:
-                attackRange = 5.0f;
+                attackRange = 3.2f;
                 fireRate = 1.1f;
                 break;
             case 2:
-                attackRange = 8.0f;
+                attackRange = 3.8f;
                 fireRate = 0.95f;
                 break;
             case 3:
-                attackRange = 12.0f; // Tối đa tầm bắn ở Lv 3
+                attackRange = 4.3f; // Tối đa tầm bắn ở Lv 3 luôn nằm gọn trong màn hình
                 fireRate = 0.8f;
                 break;
         }
@@ -316,7 +316,7 @@ public class SeagullCompanion : MonoBehaviour
         float ratio = 0.55f + (currentLevel - 1) * 0.15f;
         float flatBonus = 1f + (currentLevel - 1) * 1f;
         float finalDmg = (totalPlayerDmg * ratio) + flatBonus;
-        logic.Init(dir, 11f, 3f, finalDmg);
+        logic.Init(dir, 11f, 0.45f, finalDmg, 4.8f);
     }
 }
 
@@ -330,13 +330,17 @@ public class SunflowerSeedLogic : MonoBehaviour
     private float maxLife;
     private float lifeTimer;
     private float damage;
+    private Vector3 spawnPos;
+    private float maxDistance;
 
-    public void Init(Vector2 dir, float spd, float life, float dmg)
+    public void Init(Vector2 dir, float spd, float life, float dmg, float maxDist = 4.8f)
     {
         moveDir = dir.normalized;
         speed = spd;
         maxLife = life;
         damage = dmg;
+        maxDistance = maxDist;
+        spawnPos = transform.position;
         lifeTimer = 0f;
     }
 
@@ -345,7 +349,8 @@ public class SunflowerSeedLogic : MonoBehaviour
         transform.position += (Vector3)(moveDir * speed * Time.deltaTime);
 
         lifeTimer += Time.deltaTime;
-        if (lifeTimer >= maxLife)
+        float distSqr = (transform.position - spawnPos).sqrMagnitude;
+        if (lifeTimer >= maxLife || distSqr >= maxDistance * maxDistance)
         {
             Destroy(gameObject);
         }

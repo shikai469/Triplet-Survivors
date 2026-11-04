@@ -15,7 +15,7 @@ public class PiercingShotSkill : MonoBehaviour
     public float baseCooldown = 5.0f; // Lv 1: 5s, Lv 2: 3.8s, Lv 3: 2.5s
     public float baseDamage = 40f;
     public float bulletSpeed = 14f;
-    public float bulletLifeTime = 4f;
+    public float bulletLifeTime = 0.4f; // Giới hạn thời gian sống phù hợp với màn hình dọc điện thoại
 
     [Header("Overdrive Settings")]
     [Tooltip("Khoảng cách giữa các phát đạn Sniper khi trạng thái Xả Chiêu (Overdrive) kích hoạt")]
@@ -122,13 +122,14 @@ public class PiercingShotSkill : MonoBehaviour
         float ratio = 1.4f + (currentLevel - 1) * 0.3f;
         float flatBonus = 4f + (currentLevel - 1) * 2f;
         float finalDmg = (totalPlayerDmg * ratio) + flatBonus;
-        logic.Init(direction, bulletSpeed, bulletLifeTime, finalDmg);
+        logic.Init(direction, bulletSpeed, bulletLifeTime, finalDmg, 4.8f);
     }
 
     private Transform FindClosestEnemy()
     {
         Transform closest = null;
-        float minDstSqr = Mathf.Infinity;
+        float maxSearchRange = 4.5f; // Giới hạn tầm nhắm quái trong phạm vi màn hình
+        float minDstSqr = maxSearchRange * maxSearchRange;
         Vector3 playerPos = transform.position;
 
         int count = EnemyHealth.ActiveEnemies.Count;
@@ -157,14 +158,18 @@ public class PiercingBulletLogic : MonoBehaviour
     private float lifeTimer;
     private float maxLife;
     private float damage;
+    private Vector3 spawnPos;
+    private float maxDistance;
     private readonly System.Collections.Generic.HashSet<Collider2D> hitTargets = new System.Collections.Generic.HashSet<Collider2D>();
 
-    public void Init(Vector2 dir, float spd, float life, float dmg)
+    public void Init(Vector2 dir, float spd, float life, float dmg, float maxDist = 4.8f)
     {
         moveDir = dir.normalized;
         speed = spd;
         maxLife = life;
         damage = dmg;
+        maxDistance = maxDist;
+        spawnPos = transform.position;
         lifeTimer = 0f;
     }
 
@@ -173,7 +178,8 @@ public class PiercingBulletLogic : MonoBehaviour
         transform.position += (Vector3)(moveDir * speed * Time.deltaTime);
 
         lifeTimer += Time.deltaTime;
-        if (lifeTimer >= maxLife)
+        float distSqr = (transform.position - spawnPos).sqrMagnitude;
+        if (lifeTimer >= maxLife || distSqr >= maxDistance * maxDistance)
         {
             Destroy(gameObject);
         }

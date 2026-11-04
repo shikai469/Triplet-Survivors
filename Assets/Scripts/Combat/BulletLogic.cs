@@ -4,7 +4,8 @@ public class BulletLogic : MonoBehaviour
 {
     [Header("Bullet Settings")]
     public float speed = 10f;
-    public float lifeTime = 5f;
+    public float lifeTime = 0.55f; // Thời gian sống giới hạn trong tầm nhìn màn hình (~5 units)
+    public float maxDistance = 4.8f; // Tầm bay tối đa không vượt ra ngoài màn hình
     public int pierceCount = 0; // 0: chạm 1 quái là biến mất
 
     [Header("Damage Settings")]
@@ -16,12 +17,14 @@ public class BulletLogic : MonoBehaviour
 
     private Vector2 moveDirection = Vector2.up;
     private float aliveTimer;
+    private Vector3 spawnPosition;
 
     void OnEnable()
     {
         // Reset trạng thái khi lấy từ pool ra tái sử dụng
         aliveTimer = 0f;
         pierceCount = 0;
+        spawnPosition = transform.position;
     }
 
     void FindNearestEnemy()
@@ -79,9 +82,10 @@ public class BulletLogic : MonoBehaviour
     {
         transform.Translate(moveDirection * speed * Time.deltaTime, Space.World);
 
-        // Tự động trả về pool sau khi hết thời gian sống (thay thế Destroy timer)
+        // Tự động thu hồi về pool khi hết thời gian sống hoặc bay vượt quá tầm nhìn màn hình (maxDistance)
         aliveTimer += Time.deltaTime;
-        if (aliveTimer >= lifeTime)
+        float distSqr = (transform.position - spawnPosition).sqrMagnitude;
+        if (aliveTimer >= lifeTime || distSqr >= maxDistance * maxDistance)
         {
             ReturnToPool();
         }

@@ -5,75 +5,50 @@ using TMPro;
 
 namespace TripleTSurvival.Editor
 {
-    [InitializeOnLoad]
+    /// <summary>
+    /// Công cụ kiểm tra và liên kết Font Fallback tiếng Việt cho TextMeshPro.
+    /// Chỉ kích hoạt khi người dùng chọn menu Tools -> Fix TextMeshPro Fallbacks,
+    /// tránh việc tự động ép re-import mỗi khi compile code gây lỗi NativeFormatImporter.
+    /// </summary>
     public static class TMPFallbackFixer
     {
-        static TMPFallbackFixer()
-        {
-            EditorApplication.delayCall += Execute;
-        }
-
         [MenuItem("Tools/Fix TextMeshPro Fallbacks")]
         public static void Execute()
         {
-            Debug.Log("[TMPFallbackFixer] Re-importing TMP font assets and settings...");
+            Debug.Log("[TMPFallbackFixer] Đang kiểm tra cấu hình font TextMeshPro Fallback...");
 
             string fallbackPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset";
             string mainFontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
-            string settingsPath = "Assets/TextMesh Pro/Resources/TMP Settings.asset";
-
-            AssetDatabase.ImportAsset(fallbackPath, ImportAssetOptions.ForceUpdate);
-            AssetDatabase.ImportAsset(mainFontPath, ImportAssetOptions.ForceUpdate);
-            AssetDatabase.ImportAsset(settingsPath, ImportAssetOptions.ForceUpdate);
-            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 
             TMP_FontAsset fallback = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(fallbackPath);
             TMP_FontAsset mainFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(mainFontPath);
 
-            if (fallback != null)
+            if (fallback == null || mainFont == null)
             {
-                fallback.ReadFontAssetDefinition();
+                Debug.LogWarning("[TMPFallbackFixer] Không tìm thấy font asset tại đường dẫn mặc định.");
+                return;
             }
 
-            if (mainFont != null)
+            if (mainFont.fallbackFontAssetTable == null)
+                mainFont.fallbackFontAssetTable = new List<TMP_FontAsset>();
+
+            bool changed = false;
+            if (!mainFont.fallbackFontAssetTable.Contains(fallback))
             {
-                if (mainFont.fallbackFontAssetTable == null)
-                    mainFont.fallbackFontAssetTable = new List<TMP_FontAsset>();
-
-                if (fallback != null && !mainFont.fallbackFontAssetTable.Contains(fallback))
-                {
-                    mainFont.fallbackFontAssetTable.Add(fallback);
-                    EditorUtility.SetDirty(mainFont);
-                }
-
-                mainFont.ReadFontAssetDefinition();
+                mainFont.fallbackFontAssetTable.Add(fallback);
+                EditorUtility.SetDirty(mainFont);
+                changed = true;
             }
 
-            string testStr = "Cài Đặt Bắt Đầu Nâng Cấp \u0110\u1EB7\u1EAF\u1EA7\u1EA5";
-            if (mainFont != null)
+            if (changed)
             {
-                bool allFoundWithFallback = true;
-                List<char> stillMissing = new List<char>();
-                foreach (char c in testStr)
-                {
-                    if (!mainFont.HasCharacter(c, searchFallbacks: true, tryAddCharacter: true))
-                    {
-                        allFoundWithFallback = false;
-                        stillMissing.Add(c);
-                    }
-                }
-
-                if (allFoundWithFallback)
-                {
-                    Debug.Log($"[TMPFallbackFixer] SUCCESS: All test characters in '{testStr}' resolved via LiberationSans SDF + Fallback!");
-                }
-                else
-                {
-                    Debug.LogWarning($"[TMPFallbackFixer] Characters still missing: {string.Join(", ", stillMissing)}");
-                }
+                AssetDatabase.SaveAssets();
+                Debug.Log("[TMPFallbackFixer] Đã cập nhật thành công Fallback font vào LiberationSans SDF!");
             }
-
-            AssetDatabase.SaveAssets();
+            else
+            {
+                Debug.Log("[TMPFallbackFixer] Font Fallback tiếng Việt đã được cấu hình và liên kết hoàn hảo từ trước!");
+            }
         }
     }
 }
